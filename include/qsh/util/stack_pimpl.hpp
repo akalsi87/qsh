@@ -56,6 +56,7 @@ class stack_pimpl : noncopyable
     {
         if (m_init) destroy();
         new (&(m_data.data)) impl(std::forward<Ts>(args)...);
+        m_init = true;
     }
 
     void destroy()

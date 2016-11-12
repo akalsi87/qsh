@@ -17,14 +17,15 @@ namespace qsh {
 
 class parser_impl;
 
-class parser : noncopyable
+class QSH_API parser : noncopyable
 {
   public:
     parser();
     ~parser();
-    void parse_file(const char* filename);
+    bool parse_file(const char* filename);
+    bool parse_string(const char* str);
   private:
-    static const int IMPL_SIZE = 16;
+    static const int IMPL_SIZE = 2*sizeof(size_t);
     stack_pimpl<parser_impl, IMPL_SIZE> m_impl;
 };
 

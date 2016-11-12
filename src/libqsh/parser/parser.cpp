@@ -43,7 +43,7 @@ struct parser_impl
         buffstate = yy_scan_string(str, scanner);
         bool fail = yyparse(scanner);
         yy_delete_buffer(buffstate, scanner);
-        return fail;
+        return !fail;
     }
 
     ~parser_impl()
@@ -62,7 +62,7 @@ parser::~parser()
 {
 }
 
-void parser::parse_file(const char* filename)
+bool parser::parse_file(const char* filename)
 {
     std::string contents;
     {// read file into string
@@ -71,7 +71,12 @@ void parser::parse_file(const char* filename)
         strm << file.rdbuf();
         contents = strm.str(); 
     }
-    m_impl->parse_string(contents.c_str());
+    return m_impl->parse_string(contents.c_str());
+}
+
+bool parser::parse_string(const char* str)
+{
+    return m_impl->parse_string(str);
 }
 
 } // namespace qsh

@@ -6,7 +6,11 @@ LD   ?= ld
 
 PREFIX ?= install
 
-OPTS += -O3 -g
+# debug
+OPTS ?= -O0 -g
+# release
+# OPTS ?= -O3 -DNDEBUG
+
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
 CFLAGS += -DBUILD_QSH -std=c99 -fvisibility=hidden -fPIC $(OPTS)
@@ -109,11 +113,11 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
 
 install: $(PREFIX)/lib/$(LIB_NAME)
 
-$(TESTS): |install
+$(TESTS): $(PREFIX)/lib/$(LIB_NAME)
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) $(CXXFLAGS) -I$(PREFIX)/include -Itests $(WARN) -Wno-unused-parameter $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
-%.log: ${TESTS}
+%.log: $(TESTS)
 	@$(PRINTF) 'Running test \033[1m$<\033[0m...\n'
 	$<
 #env LD_LIBRARY_PATH=$(PREFIX)/lib $<

@@ -3,14 +3,15 @@
 %option bison-bridge
 %option bison-locations
 %option ecs
-%option nodefault reentrant noyywrap stack warn yylineno
+%option nodefault reentrant noyywrap
 
 S  [+-]
 D  [0-9]
 H  [a-fA-F0-9]
 A  [a-zA-Z]
 E  ([Ee]{S}?{D}+)
-WS [ \t\v\n\f]
+WS [ \t\v\f\r]
+NL \n
 HL (0[xX])
 IL [a-zA-Z_]
 ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
@@ -23,6 +24,13 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 #include <stdio.h>
 #include "parser.h"
 
+#define YY_USER_ACTION                  \
+    {                                   \
+        yylloc->first_line = yylloc->last_line;  \
+        yylloc->first_column = yylloc->last_column;  \
+        yylloc->last_column += yyleng;     \
+    }
+
 static
 void consume_comment(yyscan_t, YYLTYPE* l);
 %}
@@ -30,7 +38,7 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 %%
 
 "/*"                            { consume_comment(yyscanner, yylloc); }
-"//".*                          { /* eat the line */    }
+"//".*$                         { /* eat the line */    }
 "break"                         { return KWD_BREAK;     }
 "continue"                      { return KWD_CONTINUE;  }
 "def"                           { return KWD_DEF;       }
@@ -90,6 +98,7 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 "^"                             { return TOK_XOR;       }
 "?"                             { return TOK_TERNARY;   }
 {WS}+                           { /* disregard */       }
+{NL}                            { yylloc->first_column = yylloc->last_column = 0; yylloc->first_line = yylloc->last_line++; }
 .                               { /* ignore bad chars */}
 
 %%
@@ -107,6 +116,13 @@ void consume_comment(yyscan_t scanner, YYLTYPE* l)
             if (c == 0) {
                 break;
             }
+            if (c == '\n') {
+                l->first_column = l->last_column = 0; 
+                l->first_line = l->last_line++;
+            }
+        } else if (c == '\n') {
+            l->first_column = l->last_column = 0; 
+            l->first_line = l->last_line++;
         }
     }
     yyerror(l, scanner, "Line comment with regular comment "
