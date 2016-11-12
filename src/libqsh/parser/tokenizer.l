@@ -23,16 +23,13 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 #include <stdio.h>
 #include "parser.h"
 
-extern
-void yyerror(const char*);  /* prints grammar violation message */
-
 static
-void consume_comment(yyscan_t);
+void consume_comment(yyscan_t, YYLTYPE* l);
 %}
 
 %%
 
-"/*"                            { consume_comment(yyscanner); }
+"/*"                            { consume_comment(yyscanner, yylloc); }
 "//".*                          { /* eat the line */    }
 "break"                         { return KWD_BREAK;     }
 "continue"                      { return KWD_CONTINUE;  }
@@ -98,12 +95,12 @@ void consume_comment(yyscan_t);
 %%
 
 static
-void consume_comment(yyscan_t scanner)
+void consume_comment(yyscan_t scanner, YYLTYPE* l)
 {
     int c;
-    while ((c = input(scanner)) != 0) {
+    while ((c = yyinput(scanner)) != 0) {
         if (c == '*') {
-            while ((c = input(scanner)) == '*') { }
+            while ((c = yyinput(scanner)) == '*') { }
             if (c == '/') {
                 return;
             }
@@ -112,6 +109,6 @@ void consume_comment(yyscan_t scanner)
             }
         }
     }
-    yyerror("Line comment with regular comment "
-            "not terminated (//* comment...)");
+    yyerror(l, scanner, "Line comment with regular comment "
+                        "not terminated (//* comment...)");
 }

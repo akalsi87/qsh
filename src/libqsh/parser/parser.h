@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_SRC_LIBQSH_PARSER_GEN_PARSER_H_INCLUDED
-# define YY_YY_SRC_LIBQSH_PARSER_GEN_PARSER_H_INCLUDED
+#ifndef YY_YY_SRC_LIBQSH_PARSER_PARSER_H_INCLUDED
+# define YY_YY_SRC_LIBQSH_PARSER_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -40,16 +40,10 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 11 "src/libqsh/parser/parser.l" /* glr.c:2555  */
+#line 54 "src/libqsh/parser/parser.l" /* glr.c:2555  */
 
 
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void* yyscan_t;
-#endif
-
-
-#line 53 "src/libqsh/parser/gen_parser.h" /* glr.c:2555  */
+#line 47 "src/libqsh/parser/parser.h" /* glr.c:2555  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -132,4 +126,4 @@ struct YYLTYPE
 
 int yyparse (void* scanner);
 
-#endif /* !YY_YY_SRC_LIBQSH_PARSER_GEN_PARSER_H_INCLUDED  */
+#endif /* !YY_YY_SRC_LIBQSH_PARSER_PARSER_H_INCLUDED  */

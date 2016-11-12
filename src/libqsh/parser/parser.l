@@ -8,13 +8,50 @@
 %lex-param {void* scanner}
 %parse-param {void* scanner}
 
-%code requires {
+%code top {
+
+#ifndef _qsh_parser_gen_
+#define _qsh_parser_gen_
+
+
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef union
+{
+    long   l;
+    double d;
+    void*  p;
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T
 typedef void* yyscan_t;
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
+int yylex(YYSTYPE * yyval_param, YYLTYPE * yylloc_param, void * yyscanner);
+int yyerror(YYLTYPE* yylloc_param, void *scanner, const char *s);
+
+
+}
+
+%code requires {
 }
 
 %token KWD_BREAK KWD_CONTINUE KWD_DEF KWD_ELSE KWD_FOR KWD_IF KWD_RETURN KWD_VAR KWD_WHILE
@@ -255,25 +292,19 @@ function_definition
 
 %%
 #include <stdio.h>
-int yyerror(YYLTYPE *locp, char *msg) {
-  if (locp) {
-      fprintf(stderr, "parse error: %s (:%d.%d -> :%d.%d)\n",
-              msg,
-              locp->first_line, locp->first_column,
-              locp->last_line,  locp->last_column);
-      /* todo: add some fancy ^^^^^ error handling here */
-  } else {
-      fprintf(stderr, "parse error: %s\n", msg);
-  }
-  return 0;
+
+int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
+    (void)scanner;
+    if (locp) {
+        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
+                msg,
+                locp->first_line, locp->first_column,
+                locp->last_line,  locp->last_column);
+        /* todo: add some fancy ^^^^^ error handling here */
+    } else {
+        fprintf(stderr, "parse error: %s\n", msg);
+    }
+    return 0;
 }
 
-int main(int argc, const char* argv[])
-{
-    int result;
-    yyscan_t scanner;
-    yylex_init(&scanner);
-    result = yyparse(scanner);
-    yylex_destroy(scanner);
-    return result;
-}
+#endif// _qsh_parser_gen_

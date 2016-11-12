@@ -45,13 +45,58 @@
 #define YYPURE 1
 
 
+/* "%code top" blocks.  */
+#line 11 "src/libqsh/parser/parser.l" /* glr.c:189  */
+
+
+#ifndef _qsh_parser_gen_
+#define _qsh_parser_gen_
+
+
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef union
+{
+    long   l;
+    double d;
+    void*  p;
+} YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
+
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
+
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
+int yylex(YYSTYPE * yyval_param, YYLTYPE * yylloc_param, void * yyscanner);
+int yyerror(YYLTYPE* yylloc_param, void *scanner, const char *s);
+
+
+
+#line 93 "src/libqsh/parser/parser.c" /* glr.c:189  */
 
 
 
 
 /* First part of user declarations.  */
 
-#line 55 "src/libqsh/parser/gen_parser.c" /* glr.c:207  */
+#line 100 "src/libqsh/parser/parser.c" /* glr.c:207  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -61,7 +106,7 @@
 #  endif
 # endif
 
-#include "gen_parser.h"
+#include "parser.h"
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -84,7 +129,7 @@ static YYLTYPE yyloc_default
 
 /* Copy the second part of user declarations.  */
 
-#line 88 "src/libqsh/parser/gen_parser.c" /* glr.c:230  */
+#line 133 "src/libqsh/parser/parser.c" /* glr.c:230  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -252,19 +297,19 @@ static const unsigned char yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const unsigned char yyrline[] =
+static const unsigned short int yyrline[] =
 {
-       0,    29,    29,    30,    31,    35,    36,    37,    38,    39,
-      43,    44,    45,    46,    47,    48,    55,    56,    60,    61,
-      62,    63,    64,    65,    66,    70,    71,    72,    73,    77,
-      78,    79,    83,    84,    85,    89,    90,    91,    92,    93,
-      97,    98,    99,   103,   104,   108,   109,   113,   114,   118,
-     119,   123,   124,   128,   129,   133,   134,   138,   143,   147,
-     148,   152,   153,   157,   158,   162,   163,   167,   168,   169,
-     170,   171,   175,   176,   180,   181,   185,   186,   187,   188,
-     189,   193,   194,   198,   199,   203,   204,   208,   209,   213,
-     214,   218,   219,   220,   221,   222,   226,   227,   228,   229,
-     233,   234,   238,   239,   243,   247,   248,   251,   252
+       0,    66,    66,    67,    68,    72,    73,    74,    75,    76,
+      80,    81,    82,    83,    84,    85,    92,    93,    97,    98,
+      99,   100,   101,   102,   103,   107,   108,   109,   110,   114,
+     115,   116,   120,   121,   122,   126,   127,   128,   129,   130,
+     134,   135,   136,   140,   141,   145,   146,   150,   151,   155,
+     156,   160,   161,   165,   166,   170,   171,   175,   180,   184,
+     185,   189,   190,   194,   195,   199,   200,   204,   205,   206,
+     207,   208,   212,   213,   217,   218,   222,   223,   224,   225,
+     226,   230,   231,   235,   236,   240,   241,   245,   246,   250,
+     251,   255,   256,   257,   258,   259,   263,   264,   265,   266,
+     270,   271,   275,   276,   280,   284,   285,   288,   289
 };
 #endif
 
@@ -1139,7 +1184,7 @@ yyuserAction (yyRuleNum yyn, size_t yyrhslen, yyGLRStackItem* yyvsp,
   switch (yyn)
     {
       
-#line 1143 "src/libqsh/parser/gen_parser.c" /* glr.c:783  */
+#line 1188 "src/libqsh/parser/parser.c" /* glr.c:783  */
       default: break;
     }
 
@@ -2910,28 +2955,22 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 256 "src/libqsh/parser/parser.l" /* glr.c:2551  */
+#line 293 "src/libqsh/parser/parser.l" /* glr.c:2551  */
 
 #include <stdio.h>
-int yyerror(YYLTYPE *locp, char *msg) {
-  if (locp) {
-      fprintf(stderr, "parse error: %s (:%d.%d -> :%d.%d)\n",
-              msg,
-              locp->first_line, locp->first_column,
-              locp->last_line,  locp->last_column);
-      /* todo: add some fancy ^^^^^ error handling here */
-  } else {
-      fprintf(stderr, "parse error: %s\n", msg);
-  }
-  return 0;
+
+int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
+    (void)scanner;
+    if (locp) {
+        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
+                msg,
+                locp->first_line, locp->first_column,
+                locp->last_line,  locp->last_column);
+        /* todo: add some fancy ^^^^^ error handling here */
+    } else {
+        fprintf(stderr, "parse error: %s\n", msg);
+    }
+    return 0;
 }
 
-int main(int argc, const char* argv[])
-{
-    int result;
-    yyscan_t scanner;
-    yylex_init(&scanner);
-    result = yyparse(scanner);
-    yylex_destroy(scanner);
-    return result;
-}
+#endif// _qsh_parser_gen_
