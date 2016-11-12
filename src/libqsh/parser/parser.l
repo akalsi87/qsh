@@ -1,3 +1,22 @@
+ /* Parser grammar */
+
+%define parse.error verbose
+%define api.pure true
+%locations
+%token-table
+%glr-parser
+%lex-param {void* scanner}
+%parse-param {void* scanner}
+
+%code requires {
+
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
+
+}
+
 %token KWD_BREAK KWD_CONTINUE KWD_DEF KWD_ELSE KWD_FOR KWD_IF KWD_RETURN KWD_VAR KWD_WHILE
 %token IDENT LIT_INT_HEX LIT_INT_DEC LIT_FLOAT LIT_CHAR LIT_STRING
 %token OP_SHIFT_L OP_SHIFT_R OP_INCR OP_DECR OP_AND OP_OR OP_LE OP_GE OP_EQ OP_NE
@@ -236,15 +255,25 @@ function_definition
 
 %%
 #include <stdio.h>
-
-void yyerror(const char* s)
-{
-    fflush(stdout);
-    fprintf(stderr, "*** %s\n", s);
+int yyerror(YYLTYPE *locp, char *msg) {
+  if (locp) {
+      fprintf(stderr, "parse error: %s (:%d.%d -> :%d.%d)\n",
+              msg,
+              locp->first_line, locp->first_column,
+              locp->last_line,  locp->last_column);
+      /* todo: add some fancy ^^^^^ error handling here */
+  } else {
+      fprintf(stderr, "parse error: %s\n", msg);
+  }
+  return 0;
 }
 
 int main(int argc, const char* argv[])
 {
-    yydebug = 1;
-    yyparse();
+    int result;
+    yyscan_t scanner;
+    yylex_init(&scanner);
+    result = yyparse(scanner);
+    yylex_destroy(scanner);
+    return result;
 }

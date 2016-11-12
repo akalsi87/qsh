@@ -21,6 +21,9 @@ PRINTF ?= printf
 RM ?= rm -f
 CP ?= cp
 
+BISON ?= bison
+FLEX  ?= flex
+
 VER=0.0.1
 
 BUILD_DIR := build
@@ -28,6 +31,13 @@ OBJ_DIR := $(BUILD_DIR)/obj
 
 SRC_DIRS := src/libqsh
 TEST_DIRS := tests
+
+PARSER_DIR := src/libqsh/parser
+LEX_GRAMMAR := tokenizer
+PARSE_GRAMMAR := parser
+
+GRAMMAR_FILE_NAMES := $(addsuffix .c,gen_$(LEX_GRAMMAR)) $(addsuffix .c,gen_$(PARSE_GRAMMAR))
+GRAMMAR_FILES := $(addprefix $(PARSER_DIR)/,$(GRAMMAR_FILE_NAMES))
 
 C_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.c)))
 CXX_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.cpp)))
@@ -46,13 +56,21 @@ OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES)
 LIB_NAME:=libqsh.so
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
 
-.PHONY: check
+.PHONY: check grammar check
 .SECONDARY: $(TESTS)
 
 all: $(QSH_LIB)
 
 -include $(C_DEP_FILES)
 -include $(CXX_DEP_FILES)
+
+$(PARSER_DIR)/gen_$(PARSE_GRAMMAR).c:
+	$(BISON) -d -o $(PARSER_DIR)/gen_$(PARSE_GRAMMAR).c $(PARSER_DIR)/$(PARSE_GRAMMAR).l
+
+$(PARSER_DIR)/gen_$(LEX_GRAMMAR).c:
+	$(FLEX) --outfile=$(PARSER_DIR)/gen_$(LEX_GRAMMAR).c --header-file=$(PARSER_DIR)/gen_$(LEX_GRAMMAR).h $(PARSER_DIR)/$(LEX_GRAMMAR).l
+
+grammar: ${GRAMMAR_FILES}
 
 $(OBJ_DIR)/%.o: %.cpp
 	@$(MKDIR) -p $(shell dirname $@)
@@ -76,7 +94,7 @@ build: ${OBJS}
 
 $(QSH_LIB): build
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
-	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS)
+	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS) $(GRAMMAR_FILES)
 
 $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'

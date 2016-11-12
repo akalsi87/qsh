@@ -1,3 +1,10 @@
+ /* Tokenizer grammar, uses flex++ options */
+
+%option bison-bridge
+%option bison-locations
+%option ecs
+%option nodefault reentrant noyywrap stack warn yylineno
+
 S  [+-]
 D  [0-9]
 H  [a-fA-F0-9]
@@ -14,18 +21,18 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 
 %{
 #include <stdio.h>
-#include "y.tab.h"
+#include "parser.h"
 
 extern
 void yyerror(const char*);  /* prints grammar violation message */
 
 static
-void consume_comment(void);
+void consume_comment(yyscan_t);
 %}
 
 %%
 
-"/*"                            { consume_comment();    }
+"/*"                            { consume_comment(yyscanner); }
 "//".*                          { /* eat the line */    }
 "break"                         { return KWD_BREAK;     }
 "continue"                      { return KWD_CONTINUE;  }
@@ -90,19 +97,13 @@ void consume_comment(void);
 
 %%
 
-
-int yywrap(void)        /* called at end of input */
-{
-    return 1;           /* terminate now */
-}
-
 static
-void consume_comment(void)
+void consume_comment(yyscan_t scanner)
 {
     int c;
-    while ((c = input()) != 0) {
+    while ((c = input(scanner)) != 0) {
         if (c == '*') {
-            while ((c = input()) == '*') { }
+            while ((c = input(scanner)) == '*') { }
             if (c == '/') {
                 return;
             }
