@@ -3,7 +3,7 @@
 %option bison-bridge
 %option bison-locations
 %option ecs
-%option nodefault reentrant noyywrap
+%option nodefault reentrant noyywrap yylineno
 
 S  [+-]
 D  [0-9]
@@ -29,6 +29,7 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
         yylloc->first_line = yylloc->last_line;  \
         yylloc->first_column = yylloc->last_column;  \
         yylloc->last_column += yyleng;     \
+        yylloc->last_line = yylineno;   \
     }
 
 static
@@ -98,7 +99,7 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 "^"                             { return TOK_XOR;       }
 "?"                             { return TOK_TERNARY;   }
 {WS}+                           { /* disregard */       }
-{NL}                            { yylloc->first_column = yylloc->last_column = 0; yylloc->first_line = yylloc->last_line++; }
+{NL}                            { yylloc->first_column = yylloc->last_column = 0; }
 .                               { /* ignore bad chars */}
 
 %%
@@ -116,13 +117,6 @@ void consume_comment(yyscan_t scanner, YYLTYPE* l)
             if (c == 0) {
                 break;
             }
-            if (c == '\n') {
-                l->first_column = l->last_column = 0; 
-                l->first_line = l->last_line++;
-            }
-        } else if (c == '\n') {
-            l->first_column = l->last_column = 0; 
-            l->first_line = l->last_line++;
         }
     }
     yyerror(l, scanner, "Line comment with regular comment "

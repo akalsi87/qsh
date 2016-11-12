@@ -296,13 +296,13 @@ function_definition
 int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
     (void)scanner;
     if (locp) {
-        fprintf(stderr, "%s (line %d:%d -> line %d:%d)\n",
+        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
                 msg,
                 locp->first_line, locp->first_column,
                 locp->last_line,  locp->last_column);
         /* todo: add some fancy ^^^^^ error handling here */
     } else {
-        fprintf(stderr, "%s\n", msg);
+        fprintf(stderr, "parse error: %s\n", msg);
     }
     return 0;
 }

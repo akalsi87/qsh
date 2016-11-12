@@ -9,12 +9,45 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #include "qsh/parser/parser.hpp"
 
-#include <cstdlib>
+#include "unittest.hpp"
+#include <cstdio>
+#include <fstream>
 
-int main(int argc, const char* argv[])
+static const qsh::parser Parser;
+
+bool test_string(const char* str)
 {
-    if (argc != 2) {
-        exit(1);
-    }
-    return qsh::parser().parse_file(argv[1]) ? 0 : 1;
+    return Parser.parse_string(str);
 }
+
+bool test_file(const char* str)
+{
+    char tmpfile[8193];
+    const char* filename = std::tmpnam(tmpfile);
+    std::fstream file(filename, std::ios::out | std::ios::binary);
+    file << str;
+    file.close();
+    bool ok = Parser.parse_file(filename);
+    std::remove(filename);
+    return ok;
+}
+
+#define __PARSER_TEST(id, str, exp)             \
+  CPP_TEST(id) {                                \
+    auto id##_strg_ok = test_string(str) == exp;\
+    auto id##_file_ok = test_file(str) == exp;  \
+    TEST_TRUE(id##_strg_ok);                    \
+    TEST_TRUE(id##_file_ok);                    \
+  }
+
+#define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)
+#define PARSER_TEST_NEG(id, str) __PARSER_TEST(id, str, true)
+
+PARSER_TEST_POS(
+    singleLineCommentsOnly,
+    "// foo\n"
+    "\n"
+    "     \t\f\v    \n"
+    "// g\n"
+    "//"
+)

@@ -318,28 +318,25 @@ static const unsigned short int yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "KWD_BREAK", "KWD_CONTINUE", "KWD_DEF",
-  "KWD_ELSE", "KWD_FOR", "KWD_IF", "KWD_RETURN", "KWD_VAR", "KWD_WHILE",
-  "IDENT", "LIT_INT_HEX", "LIT_INT_DEC", "LIT_FLOAT", "LIT_CHAR",
-  "LIT_STRING", "OP_SHIFT_L", "OP_SHIFT_R", "OP_INCR", "OP_DECR", "OP_AND",
-  "OP_OR", "OP_LE", "OP_GE", "OP_EQ", "OP_NE", "TOK_SEMI", "TOK_CURLY_L",
-  "TOK_CURLY_R", "TOK_COMMA", "TOK_COLON", "TOK_ASSIGN", "TOK_PAREN_L",
-  "TOK_PAREN_R", "TOK_SQ_L", "TOK_SQ_R", "TOK_AND", "TOK_OR", "TOK_NOT",
-  "TOK_FLIP", "TOK_MINUS", "TOK_PLUS", "TOK_MUL", "TOK_DIV", "TOK_MOD",
-  "TOK_LT", "TOK_GT", "TOK_XOR", "TOK_TERNARY", "$accept",
-  "primary_expression", "constant", "postfix_expression",
-  "argument_expression_list", "unary_expression",
-  "multiplicative_expression", "additive_expression", "shift_expression",
-  "relational_expression", "equality_expression", "and_expression",
-  "xor_expression", "or_expression", "log_and_expression",
-  "log_or_expression", "conditional_expression", "assignment_expression",
-  "expression", "constant_expression", "declaration",
-  "declaration_specifiers", "init_declarator", "param_list", "declarator",
-  "initializer", "initializer_list", "statement", "compound_statement",
-  "block_item_list", "block_item", "expression_statement",
-  "selection_statement", "iteration_statement", "jump_statement",
-  "translation_unit", "external_declaration", "formal", "formals_list",
-  "function_definition", YY_NULLPTR
+  "EOF", "error", "UNDEFINED", "`break'", "`continue'", "`def'", "`else'",
+  "`for'", "`if'", "`return'", "`var'", "`while'", "`<identifier>'", "`hex integer constant'",
+  "`decimal integer constant'", "`float constant'", "`char constant'", "`string constant'",
+  "`<<'", "`>>'", "`++'", "`--'", "`&&'", "`||'", "`<='", "`>='",
+  "`=='", "`!='", "`;'", "`{'", "`}'", "`,'", "`:'", "`='", "`('", "`)'",
+  "`['", "`]'", "`&'", "`|'", "`!'", "`~'", "`-'", "`+'", "`*'", "`/'",
+  "`%'", "`<'", "`>'", "`^'", "`?'", "$accept", "primary_expression",
+  "constant", "postfix_expression", "argument_expression_list",
+  "unary_expression", "multiplicative_expression", "additive_expression",
+  "shift_expression", "relational_expression", "equality_expression",
+  "and_expression", "xor_expression", "or_expression",
+  "logical_and_expression", "logical_or_expression", "conditional_expression",
+  "assignment_expression", "expression", "constant_expression",
+  "declaration", "declaration_specifiers", "init_declarator", "param_list",
+  "declarator", "initializer", "initializer_list", "statement",
+  "compound_statement", "block_item_list", "block_item",
+  "expression_statement", "selection_statement", "iteration_statement",
+  "jump_statement", "translation_unit", "external_declaration", "formal",
+  "formals_list", "function_definition", YY_NULLPTR
 };
 #endif
 
@@ -2962,13 +2959,13 @@ yypdumpstack (yyGLRStack* yystackp)
 int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
     (void)scanner;
     if (locp) {
-        fprintf(stderr, "%s (line %d:%d -> line %d:%d)\n",
+        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
                 msg,
                 locp->first_line, locp->first_column,
                 locp->last_line,  locp->last_column);
         /* todo: add some fancy ^^^^^ error handling here */
     } else {
-        fprintf(stderr, "%s\n", msg);
+        fprintf(stderr, "parse error: %s\n", msg);
     }
     return 0;
 }

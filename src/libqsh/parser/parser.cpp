@@ -30,7 +30,7 @@ namespace qsh {
 struct parser_impl
 {
     yyscan_t scanner;
-    YY_BUFFER_STATE buffstate;
+    mutable YY_BUFFER_STATE buffstate;
 
     parser_impl()
     {
@@ -38,9 +38,12 @@ struct parser_impl
         assert(!fail);
     }
 
-    bool parse_string(const char* str)
+    bool parse_string(const char* str, int len = -1) const
     {
-        buffstate = yy_scan_string(str, scanner);
+        if (len == -1) {
+            len = strlen(str);
+        }
+        buffstate = yy_scan_bytes(str, len, scanner);
         bool fail = yyparse(scanner);
         yy_delete_buffer(buffstate, scanner);
         return !fail;
@@ -62,7 +65,7 @@ parser::~parser()
 {
 }
 
-bool parser::parse_file(const char* filename)
+bool parser::parse_file(const char* filename) const
 {
     std::string contents;
     {// read file into string
@@ -71,10 +74,10 @@ bool parser::parse_file(const char* filename)
         strm << file.rdbuf();
         contents = strm.str(); 
     }
-    return m_impl->parse_string(contents.c_str());
+    return m_impl->parse_string(contents.c_str(), contents.size());
 }
 
-bool parser::parse_string(const char* str)
+bool parser::parse_string(const char* str) const
 {
     return m_impl->parse_string(str);
 }
