@@ -11,6 +11,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #include "unittest.hpp"
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 
@@ -19,6 +20,7 @@ static const qsh::parser Parser;
 
 void print_file(const char* str)
 {
+    (void)turnOffStdoutBuff;
     int line = 1;
     printf("--------\n");
     while (str) {
@@ -47,27 +49,52 @@ bool test_string(const char* str)
     return ok;
 }
 
-bool test_file(const char* str)
+const char* get_env(const char* e)
+{
+    auto val = getenv(e);
+    return val ? val : "";
+}
+
+const char* tmpdir()
+{
+    static std::string tmp;
+    if (tmp.empty()) {
+        tmp = get_env("TMPDIR");
+    }
+    if (tmp.empty()) {
+        tmp = get_env("TMP");
+    }
+    if (tmp.empty()) {
+        tmp = get_env("TEMP");
+    }
+    if (tmp.empty()) {
+        tmp = get_env("TEMPDIR");
+    }
+    tmp = "/tmp";
+    return tmp.c_str();
+}
+
+bool test_file(const char* id, const char* str)
 {
     char tmpfile[8193];
-    const char* filename = std::tmpnam(tmpfile);
+    sprintf(tmpfile, "%s/qsh_parser_%s.qsh", tmpdir(), id);
+    const char* filename = tmpfile;
     std::fstream file(filename, std::ios::out | std::ios::binary);
     file << str;
     file.close();
     printf("Errors (file)\n--------\n");
     bool ok = Parser.parse_file(filename);
     printf("--------\n");
-    std::remove(filename);
     return ok;
 }
 
-#define __PARSER_TEST(id, str, exp)             \
-  CPP_TEST(id) {                                \
-    print_file( str);                           \
-    auto id##_strg_ok = test_string(str) == exp;\
-    auto id##_file_ok = test_file(str) == exp;  \
-    TEST_TRUE(id##_strg_ok);                    \
-    TEST_TRUE(id##_file_ok);                    \
+#define __PARSER_TEST(id, str, exp)                 \
+  CPP_TEST(id) {                                    \
+    print_file( str);                               \
+    auto id##_strg_ok = test_string(str) == exp;    \
+    auto id##_file_ok = test_file(#id, str) == exp; \
+    TEST_TRUE(id##_strg_ok);                        \
+    TEST_TRUE(id##_file_ok);                        \
   }
 
 #define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)

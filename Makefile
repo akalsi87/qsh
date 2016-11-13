@@ -10,9 +10,9 @@ DEBUG_OPTS := -O0 -g
 RELEASE_OPTS := -O3 -g
 
 # debug
-OPTS ?= $(DEBUG_OPTS)
+# OPTS ?= $(DEBUG_OPTS)
 # release
-# OPTS ?= $(RELEASE_OPTS)
+OPTS ?= $(RELEASE_OPTS)
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
