@@ -29,7 +29,7 @@ class shared_ptr
         if (!p) throw std::bad_alloc();
         new (p) size_t(1);
         auto pt = new (static_cast<char*>(p) + sizeof(size_t)) type(std::forward<Ts>(args)...);
-        return shared_ptr(pt);
+        return pt;
     }
 
     shared_ptr() QSH_NOEXCEPT : m_ptr()

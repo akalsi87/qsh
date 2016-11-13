@@ -115,7 +115,7 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 install: $(PREFIX)/lib/$(LIB_NAME)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): |install $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
+$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(CXXFLAGS) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
