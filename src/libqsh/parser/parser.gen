@@ -243,7 +243,7 @@ static YYLTYPE yyloc_default
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  40
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  108
+#define YYNRULES  109
 /* YYNRULES -- Number of states.  */
 #define YYNSTATES  195
 /* YYMAXRHS -- Maximum number of symbols on right-hand side of rule.  */
@@ -309,7 +309,7 @@ static const unsigned short int yyrline[] =
      207,   208,   212,   213,   217,   218,   222,   223,   224,   225,
      226,   230,   231,   235,   236,   240,   241,   245,   246,   250,
      251,   255,   256,   257,   258,   259,   263,   264,   265,   266,
-     270,   271,   275,   276,   280,   284,   285,   288,   289
+     269,   271,   272,   276,   277,   281,   285,   286,   289,   290
 };
 #endif
 
@@ -374,19 +374,19 @@ static const short int yypact[] =
      means the default is an error.  */
 static const unsigned char yydefact[] =
 {
-       0,    62,    61,   103,     0,     0,   100,   102,    67,    59,
-       0,    64,     1,   101,     0,    60,     0,     0,     0,     0,
-       0,   105,     0,     2,     7,     8,     9,     5,     6,     0,
+     100,    62,    61,   104,     0,     0,   101,   103,    67,    59,
+       0,    64,     1,   102,     0,    60,     0,     0,     0,     0,
+       0,   106,     0,     2,     7,     8,     9,     5,     6,     0,
        0,     0,     0,     0,     0,     0,     0,    10,     3,    18,
       25,    29,    32,    35,    40,    43,    45,    47,    49,    51,
       53,    55,    73,    63,     0,    70,     0,    68,    25,    58,
-       0,   104,     0,   107,     0,     0,    19,    20,    74,     0,
+       0,   105,     0,   108,     0,     0,    19,    20,    74,     0,
       57,     0,    24,    23,    22,    21,    14,    15,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
       65,     0,    71,    69,     0,     0,     0,     0,     0,     0,
       87,    81,     0,    85,     0,    86,    76,     0,    83,    77,
-      78,    79,    80,   106,   108,    72,     0,     4,    12,     0,
+      78,    79,    80,   107,   109,    72,     0,     4,    12,     0,
       16,     0,    56,    26,    27,    28,    31,    30,    33,    34,
       38,    39,    36,    37,    41,    42,    44,    46,    48,    50,
       52,     0,     0,    97,    96,     0,     0,    98,     0,     0,
@@ -552,7 +552,7 @@ static const unsigned char yyr1[] =
       75,    75,    76,    76,    77,    77,    78,    78,    78,    78,
       78,    79,    79,    80,    80,    81,    81,    82,    82,    83,
       83,    84,    84,    84,    84,    84,    85,    85,    85,    85,
-      86,    86,    87,    87,    88,    89,    89,    90,    90
+      86,    86,    86,    87,    87,    88,    89,    89,    90,    90
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -568,7 +568,7 @@ static const unsigned char yyr2[] =
        3,     4,     3,     1,     1,     3,     1,     1,     1,     1,
        1,     2,     3,     1,     2,     1,     1,     1,     2,     7,
        5,     5,     6,     7,     6,     7,     2,     2,     2,     3,
-       1,     2,     1,     1,     2,     1,     3,     5,     6
+       0,     1,     2,     1,     1,     2,     1,     3,     5,     6
 };
 
 
@@ -585,7 +585,7 @@ static const unsigned char yydprec[] =
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYMERGER[RULE-NUM] -- Index of merging function for rule #RULE-NUM.  */
@@ -601,7 +601,7 @@ static const unsigned char yymerger[] =
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYIMMEDIATE[RULE-NUM] -- True iff rule #RULE-NUM is not to be deferred, as
@@ -618,7 +618,7 @@ static const yybool yyimmediate[] =
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0
 };
 
 /* YYCONFLP[YYPACT[STATE-NUM]] -- Pointer into YYCONFL of start of
@@ -627,10 +627,8 @@ static const yybool yyimmediate[] =
    yyconfl is terminated by a rule number of 0.  */
 static const unsigned char yyconflp[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       1,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     1,
+       5,     0,     0,     0,     3,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -642,13 +640,15 @@ static const unsigned char yyconflp[] =
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     3,     5,     7,     9,    11,
-      13,     0,     0,     0,     0,    15,    17,    19,     0,    21,
-      23,    25,    27,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     7,     9,    11,    13,    15,
+      17,     0,     0,     0,     0,    19,    21,    23,     0,    25,
+      27,    29,    31,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,    29,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    33,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -677,10 +677,10 @@ static const unsigned char yyconflp[] =
    0, pointed into by YYCONFLP.  */
 static const short int yyconfl[] =
 {
-       0,    67,     0,    26,     0,    26,     0,    26,     0,    27,
-       0,    27,     0,    27,     0,    28,     0,    28,     0,    28,
-       0,    31,     0,    31,     0,    30,     0,    30,     0,    90,
-       0
+       0,   100,     0,   100,     0,    67,     0,    26,     0,    26,
+       0,    26,     0,    27,     0,    27,     0,    27,     0,    28,
+       0,    28,     0,    28,     0,    31,     0,    31,     0,    30,
+       0,    30,     0,    90,     0
 };
 
 /* Error token number */
@@ -2952,20 +2952,20 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 293 "src/libqsh/parser/parser.l" /* glr.c:2551  */
+#line 294 "src/libqsh/parser/parser.l" /* glr.c:2551  */
 
 #include <stdio.h>
 
 int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
     (void)scanner;
     if (locp) {
-        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
-                msg,
+        fprintf(stderr, "  %s:%d col %d : %s\n",
+                "<file>",
                 locp->first_line, locp->first_column,
-                locp->last_line,  locp->last_column);
+                msg);
         /* todo: add some fancy ^^^^^ error handling here */
     } else {
-        fprintf(stderr, "parse error: %s\n", msg);
+        fprintf(stderr, "%s\n", msg);
     }
     return 0;
 }

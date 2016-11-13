@@ -39,7 +39,7 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 %%
 
 "/*"                            { consume_comment(yyscanner, yylloc); }
-"//".*$                         { /* eat the line */    }
+"//".*                          { /* eat the line */    }
 "break"                         { return KWD_BREAK;     }
 "continue"                      { return KWD_CONTINUE;  }
 "def"                           { return KWD_DEF;       }

@@ -44,6 +44,8 @@ struct parser_impl
             len = strlen(str);
         }
         buffstate = yy_scan_bytes(str, len, scanner);
+        yyset_lineno(1, scanner);
+        yyset_column(1, scanner);
         bool fail = yyparse(scanner);
         yy_delete_buffer(buffstate, scanner);
         return !fail;

@@ -11,9 +11,31 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #include "unittest.hpp"
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 
 static const qsh::parser Parser;
+
+void print_file(const char* str)
+{
+    int line = 1;
+    printf("Test:\n");
+    while (str) {
+        const char* line_end = str;
+        char c;
+        while (((c = *line_end) != '\n') && c) {
+            ++line_end;
+        }
+        if (c) {
+            printf("%3d %.*s", line++, (int)(line_end+1-str), str);
+            str = line_end+1;
+        } else {
+            printf("%3d %s", line++, str);
+            str = 0;
+        }
+    }
+    printf("$ <-- EOF\n");
+}
 
 bool test_string(const char* str)
 {
@@ -28,12 +50,13 @@ bool test_file(const char* str)
     file << str;
     file.close();
     bool ok = Parser.parse_file(filename);
-    std::remove(filename);
+    //std::remove(filename);
     return ok;
 }
 
 #define __PARSER_TEST(id, str, exp)             \
   CPP_TEST(id) {                                \
+    print_file( str);                           \
     auto id##_strg_ok = test_string(str) == exp;\
     auto id##_file_ok = test_file(str) == exp;  \
     TEST_TRUE(id##_strg_ok);                    \
@@ -41,7 +64,7 @@ bool test_file(const char* str)
   }
 
 #define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)
-#define PARSER_TEST_NEG(id, str) __PARSER_TEST(id, str, true)
+#define PARSER_TEST_NEG(id, str) __PARSER_TEST(id, str, false)
 
 PARSER_TEST_POS(
     singleLineCommentsOnly,
@@ -50,4 +73,22 @@ PARSER_TEST_POS(
     "     \t\f\v    \n"
     "// g\n"
     "//"
+)
+
+PARSER_TEST_NEG(
+    rightEndCommentLine9,
+    "// foo comment\n"
+    "/* long\n"
+    " *\n"
+    " * comment*/\n"
+    "\n"
+    "var foo = \"foooooo\"     \"barrrr\"        \"x\";\n"
+    "\n"
+    "///*\n"
+    "*/\n"
+    "def foo(var x, var y) {\n"
+    "\n"
+    "}\n"
+    "\n"
+    "var t= 1;\n"
 )

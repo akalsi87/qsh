@@ -118,9 +118,8 @@ $(TESTS): $(PREFIX)/lib/$(LIB_NAME)
 	$(CXX) $(CXXFLAGS) -I$(PREFIX)/include -Itests $(WARN) -Wno-unused-parameter $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
 %.log: $(TESTS)
-	@$(PRINTF) 'Running test \033[1m$<\033[0m...\n'
-	$<
-#env LD_LIBRARY_PATH=$(PREFIX)/lib $<
+	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'
+	$(subst .log,,$@)
 
 check: ${TEST_LOGS}
 

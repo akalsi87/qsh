@@ -267,7 +267,8 @@ jump_statement
     ;
 
 translation_unit
-    : external_declaration
+    : /*empty*/
+    | external_declaration
     | translation_unit external_declaration
     ;
 
@@ -296,13 +297,13 @@ function_definition
 int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {
     (void)scanner;
     if (locp) {
-        fprintf(stderr, "parse error: %s (line %d:%d -> line %d:%d)\n",
-                msg,
+        fprintf(stderr, "  %s:%d col %d : %s\n",
+                "<file>",
                 locp->first_line, locp->first_column,
-                locp->last_line,  locp->last_column);
+                msg);
         /* todo: add some fancy ^^^^^ error handling here */
     } else {
-        fprintf(stderr, "parse error: %s\n", msg);
+        fprintf(stderr, "%s\n", msg);
     }
     return 0;
 }
