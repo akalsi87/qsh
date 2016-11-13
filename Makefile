@@ -59,6 +59,7 @@ CXX_OBJ_FILES := $(CXX_SRC_FILES:.cpp=.o)
 CXX_DEP_FILES := $(CXX_SRC_FILES:.cpp=.d)
 
 OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES)
+HDRS := $(shell find * | grep 'include.*\.hpp')
 
 LIB_NAME:=libqsh.so
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
@@ -105,7 +106,7 @@ $(QSH_LIB): $(OBJS)
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
 	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS)
 
-$(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
+$(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'
 	$(MKDIR) -p $(PREFIX)/include $(PREFIX)/lib
 	$(CP) -rf include/* $(PREFIX)/include
@@ -114,7 +115,7 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
 install: $(PREFIX)/lib/$(LIB_NAME)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
+$(TESTS): |install $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(CXXFLAGS) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 

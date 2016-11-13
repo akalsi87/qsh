@@ -41,8 +41,8 @@ struct parser_impl
     parser_impl()
     {
         auto fail = yylex_init(&scanner);
-        yyset_debug(1, scanner);
         assert(!fail);
+        yyset_debug(YYDEBUG, scanner);
     }
 
     bool parse_string(const char* str, int len = -1) const

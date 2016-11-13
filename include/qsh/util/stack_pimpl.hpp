@@ -51,6 +51,11 @@ class stack_pimpl : noncopyable
         return *this;
     }
 
+    operator bool() const
+    {
+        return m_init;
+    }
+
     template <class... Ts>
     void reset(Ts... args)
     {
