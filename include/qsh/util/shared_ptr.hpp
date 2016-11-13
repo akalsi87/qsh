@@ -10,7 +10,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #ifndef _qsh_util_shared_ptr_hpp_
 #define _qsh_util_shared_ptr_hpp_
 
-#include "qsh/config.h"
+#include "qsh/alloc/allocator.hpp"
 
 #include <new>
 #include <utility>
@@ -25,7 +25,7 @@ class shared_ptr
     template <class... Ts>
     static shared_ptr create(Ts... args)
     {
-        auto p = allocate(sizeof(size_t) + sizeof(type));
+        auto p = qsh::allocate(sizeof(size_t) + sizeof(type));
         if (!p) throw std::bad_alloc();
         new (p) size_t(1);
         auto pt = new (static_cast<char*>(p) + sizeof(size_t)) type(std::forward<Ts>(args)...);
@@ -117,16 +117,6 @@ class shared_ptr
   private:
     type* m_ptr;
 
-    static void* allocate(size_t sz)
-    {
-        return std::malloc(sz);
-    }
-
-    static void deallocate(void* p)
-    {
-        std::free(p);
-    }
-
     shared_ptr(type* ptr) : m_ptr(ptr)
     { }
 
@@ -154,7 +144,7 @@ class shared_ptr
             auto prefs = refs();
             if (--(*prefs) == 0) {
                 m_ptr->~type();
-                deallocate(prefs);
+                qsh::deallocate(prefs);
             }
         }
     }

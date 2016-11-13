@@ -36,7 +36,7 @@ VER=0.0.1
 BUILD_DIR := build
 OBJ_DIR := $(BUILD_DIR)/obj
 
-SRC_DIRS := src/libqsh src/libqsh/parser
+SRC_DIRS := $(shell find src/* -type d | xargs)
 TEST_DIRS := tests
 
 PARSER_DIR := src/libqsh/parser

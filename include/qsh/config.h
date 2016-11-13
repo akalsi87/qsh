@@ -30,6 +30,21 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #define QSH_VER "0.0.1"
 
+inline void __useless()
+{
+#if !defined(QSH_FUNCTION_NAME)
+#  if defined(__GNUC__)
+#    define QSH_FUNCTION_NAME __PRETTY_FUNCTION__
+#  elif defined(_MSC_VER)
+#   define QSH_FUNCTION_NAME __FUNCTION__
+#  elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
+#    define QSH_FUNCTION_NAME __func__
+#  else
+#    define QSH_FUNCTION_NAME "(unknown function)"
+#  endif
+#endif
+}
+
 #include "stdint.h"
 #include "stddef.h"
 
