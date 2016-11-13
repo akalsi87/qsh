@@ -78,7 +78,7 @@ bool parser::parse_file(const char* filename) const
 {
     std::string contents;
     {// read file into string
-        std::ifstream file(filename);
+        std::ifstream file(filename, std::ios::binary);
         std::ostringstream strm;
         strm << file.rdbuf();
         contents = strm.str(); 
