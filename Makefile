@@ -1,5 +1,13 @@
 # Makefile for qsh
 
+ifeq ($(OS),Windows_NT)
+	LD := g++
+	SL := dll
+else
+	LD := ld
+	SL := so
+endif
+
 CC   ?= cc
 CXX  ?= c++
 LD   ?= ld
@@ -61,8 +69,14 @@ CXX_DEP_FILES := $(CXX_SRC_FILES:.cpp=.d)
 OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES)
 HDRS := $(shell find * | grep 'include.*\.hpp')
 
-LIB_NAME:=libqsh.so
+LIB_NAME:=libqsh.$(SL)
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
+
+ifeq ($(OS),Windows_NT)
+	CP_DLL_TEST := @$(ECHO) 'Using rpath to link tests...'
+else
+	CP_DLL_TEST := $(CP) $(QSH_LIB) .
+endif
 
 .PHONY: check grammar check
 .SECONDARY: $(TESTS)
@@ -113,6 +127,7 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	$(CP) -f $(QSH_LIB) $(PREFIX)/lib
 
 install: $(PREFIX)/lib/$(LIB_NAME)
+	$(CP_DLL_TEST) 
 
 $(TESTS): WARN += -Wno-unused-parameter
 $(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
