@@ -6,15 +6,18 @@ LD   ?= ld
 
 PREFIX ?= install
 
+DEBUG_OPTS := -O0 -g
+RELEASE_OPTS := -O3 -g
+
 # debug
-OPTS ?= -O0 -g
+OPTS ?= $(DEBUG_OPTS)
 # release
-# OPTS ?= -O3 -DNDEBUG
+# OPTS ?= $(RELEASE_OPTS)
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
-CFLAGS += -DBUILD_QSH -std=c99 -fvisibility=hidden -fPIC $(OPTS)
-CXXFLAGS += -DBUILD_QSH -std=c++11 -fvisibility=hidden -fPIC $(OPTS)
+CFLAGS += -DBUILD_QSH -std=c99 -fvisibility=hidden -fPIC
+CXXFLAGS += -DBUILD_QSH -std=c++11 -fvisibility=hidden -fPIC
 LDFLAGS += -shared
 
 CAT ?= cat
@@ -42,7 +45,6 @@ PARSE_GRAMMAR := parser
 
 GRAMMAR_FILE_NAMES := $(addsuffix .gen,$(LEX_GRAMMAR)) $(addsuffix .gen,$(PARSE_GRAMMAR))
 GRAMMAR_FILES := $(addprefix $(PARSER_DIR)/,$(GRAMMAR_FILE_NAMES))
-GRAMMAR_OBJ_FILES := $(addprefix $(OBJ_DIR)/,$(GRAMMAR_FILES:.c=.o))
 
 C_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.c)))
 CXX_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.cpp)))
@@ -56,7 +58,6 @@ C_DEP_FILES := $(C_SRC_FILES:.c=.d)
 CXX_OBJ_FILES := $(CXX_SRC_FILES:.cpp=.o)
 CXX_DEP_FILES := $(CXX_SRC_FILES:.cpp=.d)
 
-# OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES) $(GRAMMAR_OBJ_FILES)
 OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES)
 
 LIB_NAME:=libqsh.so
@@ -77,29 +78,28 @@ $(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
 $(PARSER_DIR)/$(LEX_GRAMMAR).gen: $(PARSER_DIR)/$(LEX_GRAMMAR).l
 	$(FLEX) --outfile=$@ $<
 
-grammar: ${GRAMMAR_FILES}
+grammar: $(GRAMMAR_FILES)
 
 $(OBJ_DIR)/%.o: %.c
 	@$(MKDIR) -p $(shell dirname $@)
-	@$(CC) $(CFLAGS) $(INCL) $(WARN) -c -MM -MF $(patsubst %.o,%.d,$@) $<
+	@$(CC) $(INCL) $(WARN) $(CFLAGS) $(OPTS) -c -MM -MF $(patsubst %.o,%.d,$@) $<
 	@$(PRINTF) 'Compiling    \033[1m$<\033[0m...\n'
-	$(CC) $(CFLAGS) $(INCL) $(WARN) -c $< -o $@
+	$(CC) $(INCL) $(WARN) $(CFLAGS) $(OPTS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: %.cpp
 	@$(MKDIR) -p $(shell dirname $@)
-	@$(CXX) $(CXXFLAGS) $(INCL) $(WARN) -c -MM -MF $(patsubst %.o,%.d,$@) $<
+	@$(CXX) $(INCL) $(WARN) $(CXXFLAGS) $(OPTS) -c -MM -MF $(patsubst %.o,%.d,$@) $<
 	@$(PRINTF) 'Compiling    \033[1m$<\033[0m...\n'
-	$(CXX) $(CXXFLAGS) $(INCL) $(WARN) -c $< -o $@
+	$(CXX) $(INCL) $(WARN) $(CXXFLAGS) $(OPTS) -c $< -o $@
 
-# $(GRAMMAR_OBJ_FILES): WARN += -Wno-unused-function -Wno-unused-parameter
-# $(GRAMMAR_OBJ_FILES): CFLAGS := $(subst c99,gnu99,$(CFLAGS))
+$(OBJ_DIR)/$(PARSER_DIR)/parser.o: $(GRAMMAR_FILES)
 $(OBJ_DIR)/$(PARSER_DIR)/parser.o: WARN += -Wno-unused-function -Wno-unused-parameter
 
 %.pc: %.c
-	$(CC) $(CFLAGS) $(INCL) $(WARN) -c $< -E | less
+	$(CC) $(INCL) $(WARN) $(CFLAGS) $(OPTS) -c $< -E | less
 
 %.pcpp: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCL) $(WARN) -c $< -E | less
+	$(CXX) $(INCL) $(WARN) $(CXXFLAGS) $(OPTS) -c $< -E | less
 
 $(QSH_LIB): $(OBJS)
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
@@ -113,15 +113,17 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
 
 install: $(PREFIX)/lib/$(LIB_NAME)
 
+$(TESTS): WARN += -Wno-unused-parameter
 $(TESTS): $(PREFIX)/lib/$(LIB_NAME)
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
-	$(CXX) $(CXXFLAGS) -I$(PREFIX)/include -Itests $(WARN) -Wno-unused-parameter $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
+	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(CXXFLAGS) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
 %.log: $(TESTS)
 	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'
-	$(subst .log,,$@)
+	($(subst .log,,$@) 2>&1) > $@
+	cat $@
 
-check: ${TEST_LOGS}
+check: $(TEST_LOGS)
 
 clean:
 	$(RM) -r $(BUILD_DIR)

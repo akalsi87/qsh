@@ -14,12 +14,13 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #include <cstring>
 #include <fstream>
 
+static const int turnOffStdoutBuff = []() { setvbuf(stdout, NULL, _IONBF, 0); return 1; }();
 static const qsh::parser Parser;
 
 void print_file(const char* str)
 {
     int line = 1;
-    printf("Test:\n");
+    printf("--------\n");
     while (str) {
         const char* line_end = str;
         char c;
@@ -35,11 +36,15 @@ void print_file(const char* str)
         }
     }
     printf("$ <-- EOF\n");
+    printf("--------\n");
 }
 
 bool test_string(const char* str)
 {
-    return Parser.parse_string(str);
+    printf("Errors (string)\n--------\n");
+    auto ok = Parser.parse_string(str);
+    printf("--------\n");
+    return ok;
 }
 
 bool test_file(const char* str)
@@ -49,7 +54,9 @@ bool test_file(const char* str)
     std::fstream file(filename, std::ios::out | std::ios::binary);
     file << str;
     file.close();
+    printf("Errors (file)\n--------\n");
     bool ok = Parser.parse_file(filename);
+    printf("--------\n");
     std::remove(filename);
     return ok;
 }
