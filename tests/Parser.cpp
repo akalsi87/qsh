@@ -50,7 +50,7 @@ bool test_file(const char* str)
     file << str;
     file.close();
     bool ok = Parser.parse_file(filename);
-    //std::remove(filename);
+    std::remove(filename);
     return ok;
 }
 
