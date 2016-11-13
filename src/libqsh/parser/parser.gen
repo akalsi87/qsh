@@ -304,11 +304,11 @@ static const unsigned short int yyrline[] =
       96,    97,    98,    99,   100,   104,   105,   106,   107,   111,
      112,   113,   117,   118,   119,   123,   124,   125,   126,   127,
      131,   132,   133,   137,   138,   142,   143,   147,   148,   152,
-     153,   157,   158,   162,   163,   167,   168,   172,   180,   184,
-     185,   189,   190,   194,   195,   196,   197,   198,   202,   203,
-     207,   208,   212,   213,   217,   218,   222,   223,   227,   228,
-     229,   230,   231,   235,   236,   237,   238,   241,   243,   247,
-     248,   249,   250,   254,   258,   259,   262,   263
+     153,   157,   158,   162,   163,   167,   168,   172,   176,   180,
+     181,   185,   186,   190,   191,   192,   193,   194,   198,   199,
+     203,   204,   208,   209,   213,   214,   218,   219,   223,   224,
+     225,   226,   227,   231,   232,   233,   234,   237,   239,   243,
+     244,   245,   246,   250,   254,   255,   258,   259
 };
 #endif
 
@@ -317,22 +317,23 @@ static const unsigned short int yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "EOF", "error", "UNDEFINED", "`break'", "`continue'", "`def'", "`else'",
-  "`for'", "`if'", "`return'", "`var'", "`while'", "`<identifier>'", "`hex integer constant'",
-  "`decimal integer constant'", "`float constant'", "`char constant'", "`string constant'",
-  "`<<'", "`>>'", "`++'", "`--'", "`&&'", "`||'", "`<='", "`>='",
-  "`=='", "`!='", "`;'", "`{'", "`}'", "`,'", "`:'", "`='", "`('", "`)'",
-  "`['", "`]'", "`&'", "`|'", "`!'", "`~'", "`-'", "`+'", "`*'", "`/'",
-  "`%'", "`<'", "`>'", "`^'", "`?'", "$accept", "primary_expression",
-  "constant", "postfix_expression", "argument_expression_list",
-  "unary_expression", "multiplicative_expression", "additive_expression",
-  "shift_expression", "relational_expression", "equality_expression",
-  "and_expression", "xor_expression", "or_expression",
-  "logical_and_expression", "logical_or_expression", "conditional_expression",
-  "assignment_expression", "expression", "constant_expression",
-  "declaration", "declaration_specifiers", "init_declarator", "param_list",
-  "declarator", "initializer", "initializer_list", "statement",
-  "compound_statement", "block_item_list", "block_item",
+  "$end", "error", "$undefined", "KWD_BREAK", "KWD_CONTINUE", "KWD_DEF",
+  "KWD_ELSE", "KWD_FOR", "KWD_IF", "KWD_RETURN", "KWD_VAR", "KWD_WHILE",
+  "IDENT", "LIT_INT_HEX", "LIT_INT_DEC", "LIT_FLOAT", "LIT_CHAR",
+  "LIT_STRING", "OP_SHIFT_L", "OP_SHIFT_R", "OP_INCR", "OP_DECR", "OP_AND",
+  "OP_OR", "OP_LE", "OP_GE", "OP_EQ", "OP_NE", "TOK_SEMI", "TOK_CURLY_L",
+  "TOK_CURLY_R", "TOK_COMMA", "TOK_COLON", "TOK_ASSIGN", "TOK_PAREN_L",
+  "TOK_PAREN_R", "TOK_SQ_L", "TOK_SQ_R", "TOK_AND", "TOK_OR", "TOK_NOT",
+  "TOK_FLIP", "TOK_MINUS", "TOK_PLUS", "TOK_MUL", "TOK_DIV", "TOK_MOD",
+  "TOK_LT", "TOK_GT", "TOK_XOR", "TOK_TERNARY", "$accept",
+  "primary_expression", "constant", "postfix_expression",
+  "argument_expression_list", "unary_expression",
+  "multiplicative_expression", "additive_expression", "shift_expression",
+  "relational_expression", "equality_expression", "and_expression",
+  "xor_expression", "or_expression", "log_and_expression",
+  "log_or_expression", "conditional_expression", "assignment_expression",
+  "expression", "var_definition", "init_declarator", "initializer_list",
+  "statement", "compound_statement", "block_item_list", "block_item",
   "expression_statement", "selection_statement", "iteration_statement",
   "jump_statement", "translation_unit", "external_declaration", "formal",
   "formals_list", "function_definition", YY_NULLPTR
@@ -2918,7 +2919,7 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-#line 266 "src/libqsh/parser/parser.l" /* glr.c:2551  */
+#line 262 "src/libqsh/parser/parser.l" /* glr.c:2551  */
 
 #include <stdio.h>
 

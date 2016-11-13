@@ -72,11 +72,11 @@ all: $(QSH_LIB)
 -include $(CXX_DEP_FILES)
 
 $(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
-	$(BISON) -v -d -o $(subst .gen,.c,$@) $<
+	$(BISON) -d -o $(subst .gen,.c,$@) $<
 	$(MV) $(subst .gen,.c,$@) $@
 
 $(PARSER_DIR)/$(LEX_GRAMMAR).gen: $(PARSER_DIR)/$(LEX_GRAMMAR).l
-	$(FLEX) -v -I --outfile=$@ $<
+	$(FLEX) --outfile=$@ $<
 
 grammar: $(GRAMMAR_FILES)
 
@@ -120,11 +120,14 @@ $(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
 
 %.log: $(TESTS)
 	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'
-	($(subst .log,,$@) 2>&1) > $@
+	($(subst .log,,$@) 2>&1) | tee $@
 
 check: $(TEST_LOGS)
 
 clean:
 	$(RM) -r $(BUILD_DIR)
-	$(RM) -f $(TESTS) $(TEST_LOGS)
+	$(RM) $(TESTS) $(TEST_LOGS)
 	find * | grep '~$$' | xargs $(RM)
+
+clean_grammar:
+	$(RM) $(PARSER_DIR)/*.gen

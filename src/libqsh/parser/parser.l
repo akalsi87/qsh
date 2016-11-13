@@ -172,10 +172,6 @@ expression
     : assignment_expression
     ;
 
-constant_expression
-    : conditional_expression	/* with constraints */
-    ;
-
 var_definition
     : KWD_VAR init_declarator TOK_SEMI
     ;
