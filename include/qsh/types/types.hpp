@@ -126,19 +126,25 @@ class type : noncopyable
     uint64_t m_num_types : 60;
     type_impl* m_impl;
 
+    type const** types_begin()
+    {
+        return reinterpret_cast<const type**>(this+1);
+    }
+
     type() = default;
     friend class type_factory;
 };
 
-class type_factory : noncopyable
+class QSH_API type_factory : noncopyable
 {
   public:
     type_factory();
     ~type_factory();
-    const type* get(type::kind_type k, types_range ts);
+    const type* get(type::kind_type k, types_range ts = types_range());
   private:
     class impl;
-    impl* m_impl;
+    static const int IMPL_SIZE = 96;
+    stack_pimpl<impl, IMPL_SIZE> m_impl;
 };
 
 } // namespace qsh

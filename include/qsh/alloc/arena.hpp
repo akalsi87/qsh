@@ -62,6 +62,10 @@ class QSH_API arena : noncopyable
         return reinterpret_cast<T*>(plen);
     }
 
+    typedef void (*destroy_fn)(void*);
+
+    void* allocate(size_t sz, destroy_fn fn = nullptr);
+
   private:
     struct impl;
 
@@ -87,9 +91,6 @@ class QSH_API arena : noncopyable
             }
         }
     };
-
-    typedef void (*destroyfn)(void*);
-    void* allocate(size_t sz, destroyfn fn);
 
     static const int IMPL_SIZE = 16;
     stack_pimpl<impl, IMPL_SIZE> impl_;

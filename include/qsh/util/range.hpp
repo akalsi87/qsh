@@ -10,6 +10,8 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #ifndef _qsh_util_range_hpp_
 #define _qsh_util_range_hpp_
 
+#include "qsh/config.h"
+
 #include <type_traits>
 #include <utility>
 
@@ -22,17 +24,27 @@ class pointer_range
     pointer_range(T* begin, T* end) : m_begin(begin), m_end(end)
     { }
 
-    pointer_range(T* begin, size_t n) : m_begin(begin), m_end(begin+n)
+    pointer_range(T* begin = 0, size_t n = 0) : m_begin(begin), m_end(begin+n)
     { }
 
-    T begin() const
+    T* begin() const
     {
         return m_begin;
     }
 
-    T end() const
+    T* end() const
     {
         return m_end;
+    }
+
+    T const& operator[](size_t i) const
+    {
+        return m_begin[i];
+    }
+
+    T& operator[](size_t i)
+    {
+        return m_begin[i];
     }
 
     size_t size() const

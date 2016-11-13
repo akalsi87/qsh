@@ -97,8 +97,10 @@ segment* new_segment(size_t sz)
     static const size_t ALIGN = 15;
     // align to nearest multiple of 16
     sz = (sz + ALIGN) & ~ALIGN;
-    sz += sizeof(segment);
     void* mem = qsh::allocate(sz + sizeof(segment));
+#ifndef NDEBUG
+    memset(mem, 0x42, sz + sizeof(segment));
+#endif
     return new (mem) segment(sz);
 }
 
@@ -133,7 +135,7 @@ struct arena::impl
     segment* seg_;
     size_t minsz_;
 
-    using destroy_fn = arena::destroyfn;
+    using destroy_fn = arena::destroy_fn;
 
     impl(size_t sz) : seg_(new_segment(sz)), minsz_(sz)
     {
@@ -148,15 +150,13 @@ struct arena::impl
 
     void* allocate(size_t sz, void* fptr)
     {
-        if (seg_->left > sz) {
-            return allocate_from_seg(seg_, sz, fptr);
-        } else {
+        if (seg_->left <= sz) {
             size_t segsz = sz > minsz_ ? sz : minsz_;
             segment* s = new_segment(segsz);
             s->fwd = seg_;
             seg_ = s;
-            return allocate_from_seg(s, sz, fptr);
         }
+        return allocate_from_seg(seg_, sz, fptr);
     }
 };
 
@@ -169,7 +169,7 @@ arena::~arena()
 {
 }
 
-void* arena::allocate(size_t sz, arena::destroyfn fn)
+void* arena::allocate(size_t sz, arena::destroy_fn fn)
 {
     sz = (sz + 7) & ~size_t(7); // align upto 8
     size_t szneeded = sz + sizeof(header) + (fn ? sizeof(void*) : 0);

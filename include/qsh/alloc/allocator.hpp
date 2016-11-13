@@ -31,23 +31,29 @@ class alloc
     using value_type = T;
 
   public:
+    alloc() = default;
+
+    alloc(alloc const&) = default;
+
+    template <class U>
+    alloc(alloc<U> const&) { }
+
     template <class U> struct rebind
     {
         using other = alloc<U>;
     };
 
-    T* allocate(std::size_t n)
+    T* allocate(size_t n)
     {
         return reinterpret_cast<T*>(qsh::allocate(n*sizeof(T)));
     }
 
-    void deallocate(T* p, std::size_t) QSH_NOEXCEPT
+    void deallocate(T* p, size_t) QSH_NOEXCEPT
     {
         qsh::deallocate(p);
     }
 
-    template <class U, class V>
-    friend bool operator==(const alloc<U>&, const alloc<V>&) QSH_NOEXCEPT
+    friend inline bool operator==(const alloc&, const alloc&) QSH_NOEXCEPT
     {
         return true;
     }
