@@ -12,6 +12,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #include "qsh/alloc/arena.hpp"
 #include "qsh/util/noncopyable.hpp"
+#include "qsh/util/range.hpp"
 
 #include <cassert>
 
@@ -40,7 +41,7 @@ struct type_impl : noncopyable
 
     size_t size(const_value_ptr dst) const
     {
-        m_size ? m_size(dst) : 1;
+        return m_size ? m_size(dst) : 1;
     }
 
     bool equal(const_value_ptr a, const_value_ptr b)
@@ -70,6 +71,8 @@ struct type_impl : noncopyable
     type_impl() = default;
     friend class type;
 };
+
+using types_range = const_range<type const*>;
 
 class type : noncopyable
 {
@@ -113,11 +116,11 @@ class type : noncopyable
         return comp[i];
     }
 
-    // range<const type*> types_range() const
-    // {
-    //     auto comp = reinterpret_cast<const type* const*>(this+1);
-    //     return range(comp, comp + m_num_types);
-    // }
+    types_range types() const
+    {
+        auto comp = reinterpret_cast<type const* const*>(this+1);
+        return types_range(comp, comp + m_num_types);
+    }
   private:
     kind_type m_kind : 4;
     uint64_t m_num_types : 60;
@@ -132,7 +135,7 @@ class type_factory : noncopyable
   public:
     type_factory();
     ~type_factory();
-    const type* get(type::kind_type k, size_t comps = 0, const type* ts);
+    const type* get(type::kind_type k, types_range ts);
   private:
     class impl;
     impl* m_impl;
