@@ -11,6 +11,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #define _qsh_alloc_arena_hpp_
 
 #include "qsh/config.h"
+#include "qsh/util/stack_pimpl.hpp"
 #include "qsh/util/noncopyable.hpp"
 
 #include <cstring>
@@ -90,7 +91,8 @@ class QSH_API arena : noncopyable
     typedef void (*destroyfn)(void*);
     void* allocate(size_t sz, destroyfn fn);
 
-    impl* impl_;
+    static const int IMPL_SIZE = 16;
+    stack_pimpl<impl, IMPL_SIZE> impl_;
 };
 
 } // namespace qsh

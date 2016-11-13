@@ -24,6 +24,37 @@ void* allocate(size_t sz);
 QSH_API
 void deallocate(void* p);
 
+template <class T>
+class alloc
+{
+  public:
+    using value_type = T;
+
+  public:
+    template <class U> struct rebind
+    {
+        using other = alloc<U>;
+    };
+
+    T* allocate(std::size_t n)
+    {
+        return reinterpret_cast<T*>(qsh::allocate(n*sizeof(T)));
+    }
+
+    void deallocate(T* p, std::size_t) QSH_NOEXCEPT
+    {
+        qsh::deallocate(p);
+    }
+
+    template <class U, class V>
+    friend bool operator==(const alloc<U>&, const alloc<V>&) QSH_NOEXCEPT
+    {
+        return true;
+    }
+
+    template <class U> friend class alloc;
+};
+
 struct default_allocator : noncopyable
 {
     void* allocate(size_t sz)

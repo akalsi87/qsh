@@ -160,13 +160,13 @@ struct arena::impl
     }
 };
 
-arena::arena(size_t sz) : impl_(new arena::impl(sz))
+arena::arena(size_t sz) : impl_(sz)
 {
+    static_assert(sizeof(impl) <= IMPL_SIZE, "Stack pimpl for arena too small!");
 }
 
 arena::~arena()
 {
-    delete impl_;
 }
 
 void* arena::allocate(size_t sz, arena::destroyfn fn)
