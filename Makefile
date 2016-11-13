@@ -127,7 +127,7 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	$(CP) -f $(QSH_LIB) $(PREFIX)/lib
 
 install: $(PREFIX)/lib/$(LIB_NAME)
-	$(CP_DLL_TEST) 
+	$(CP_DLL_TEST)
 
 $(TESTS): WARN += -Wno-unused-parameter
 $(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
