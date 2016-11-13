@@ -10,9 +10,9 @@ DEBUG_OPTS := -O0 -g
 RELEASE_OPTS := -O3 -g
 
 # debug
-# OPTS ?= $(DEBUG_OPTS)
+OPTS ?= $(DEBUG_OPTS)
 # release
-OPTS ?= $(RELEASE_OPTS)
+# OPTS ?= $(RELEASE_OPTS)
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
@@ -72,11 +72,11 @@ all: $(QSH_LIB)
 -include $(CXX_DEP_FILES)
 
 $(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
-	$(BISON) -d -o $(subst .gen,.c,$@) $<
+	$(BISON) -v -d -o $(subst .gen,.c,$@) $<
 	$(MV) $(subst .gen,.c,$@) $@
 
 $(PARSER_DIR)/$(LEX_GRAMMAR).gen: $(PARSER_DIR)/$(LEX_GRAMMAR).l
-	$(FLEX) --outfile=$@ $<
+	$(FLEX) -v -I --outfile=$@ $<
 
 grammar: $(GRAMMAR_FILES)
 
@@ -114,14 +114,13 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB)
 install: $(PREFIX)/lib/$(LIB_NAME)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): $(PREFIX)/lib/$(LIB_NAME)
+$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(CXXFLAGS) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
 %.log: $(TESTS)
 	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'
 	($(subst .log,,$@) 2>&1) > $@
-	cat $@
 
 check: $(TEST_LOGS)
 

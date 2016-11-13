@@ -17,6 +17,12 @@ namespace {
 
 extern "C" {
 
+#ifndef NDEBUG
+#  define YYDEBUG 1
+#else
+#  define YYDEBUG 0
+#endif
+
 #include "parser.h"
 #include "parser.gen"
 #include "tokenizer.gen"
@@ -35,6 +41,7 @@ struct parser_impl
     parser_impl()
     {
         auto fail = yylex_init(&scanner);
+        yyset_debug(1, scanner);
         assert(!fail);
     }
 

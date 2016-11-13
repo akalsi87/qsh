@@ -126,3 +126,44 @@ PARSER_TEST_NEG(
     "\n"
     "var t= 1;\n"
 )
+
+PARSER_TEST_NEG(
+    danglingVarIncomplete,
+    "var x"
+)
+
+PARSER_TEST_POS(
+    varInit,
+    "var x = 1;"
+)
+
+PARSER_TEST_NEG(
+    varInitArrNonArr,
+    "var x = {1};"
+)
+
+PARSER_TEST_NEG(
+    varInitArrNoCurlyEnd,
+    "var x = {1"
+)
+
+PARSER_TEST_POS(
+    varInitArr,
+    "var x[] = {1};"
+)
+
+PARSER_TEST_POS(
+    accessGlobalConst,
+    "var x[] = {1};\n"
+    "def get(var i) {\n"
+    "  return x[0];\n"
+    "}\n"
+)
+
+PARSER_TEST_POS(
+    accessGlobalVar,
+    "var x[] = {1};\n"
+    "def get(var i) {\n"
+    "  return x[i];\n"
+    "}\n"
+)

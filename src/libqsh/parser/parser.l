@@ -84,9 +84,6 @@ postfix_expression
     | postfix_expression OP_INCR
     | postfix_expression OP_DECR
     ;
-    /*| '(' type_name ')' '{' initializer_list '}'
-      | '(' type_name ')' '{' initializer_list ',' '}'
-     */
 
 argument_expression_list
     : assignment_expression
@@ -175,47 +172,22 @@ expression
     : assignment_expression
     ;
 
-
 constant_expression
     : conditional_expression	/* with constraints */
     ;
 
-declaration
-    : declaration_specifiers TOK_SEMI
-    | declaration_specifiers init_declarator TOK_SEMI
-    ;
-
-declaration_specifiers
-    : KWD_VAR
-    | KWD_DEF
+var_definition
+    : KWD_VAR init_declarator TOK_SEMI
     ;
 
 init_declarator
-    : declarator TOK_ASSIGN initializer
-    | declarator
-    ;
-
-param_list
-    : KWD_VAR IDENT
-    | param_list TOK_COMMA KWD_VAR IDENT
-    ;
-
-declarator
-    : IDENT
-    | declarator TOK_SQ_L TOK_SQ_R
-    | declarator TOK_SQ_L constant_expression TOK_SQ_R
-    | declarator TOK_PAREN_L TOK_PAREN_R
-    | declarator TOK_PAREN_L param_list TOK_PAREN_R
-    ;
-
-initializer
-    : TOK_CURLY_L initializer_list TOK_CURLY_R
-    | assignment_expression
+    : IDENT TOK_ASSIGN assignment_expression
+    | IDENT TOK_SQ_L TOK_SQ_R TOK_ASSIGN TOK_CURLY_L initializer_list TOK_CURLY_R
     ;
 
 initializer_list
-    : initializer
-    | initializer_list TOK_COMMA initializer
+    : assignment_expression
+    | initializer_list TOK_COMMA assignment_expression
     ;
 
 statement
@@ -237,7 +209,7 @@ block_item_list
     ;
 
 block_item
-    : declaration
+    : var_definition
     | statement
     ;
 
@@ -255,8 +227,8 @@ iteration_statement
     : KWD_WHILE TOK_PAREN_L expression TOK_PAREN_R statement
     | KWD_FOR TOK_PAREN_L expression_statement expression_statement TOK_PAREN_R statement
     | KWD_FOR TOK_PAREN_L expression_statement expression_statement expression TOK_PAREN_R statement
-    | KWD_FOR TOK_PAREN_L declaration expression_statement TOK_PAREN_R statement
-    | KWD_FOR TOK_PAREN_L declaration expression_statement expression TOK_PAREN_R statement
+    | KWD_FOR TOK_PAREN_L var_definition expression_statement TOK_PAREN_R statement
+    | KWD_FOR TOK_PAREN_L var_definition expression_statement expression TOK_PAREN_R statement
     ;
 
 jump_statement
@@ -267,14 +239,15 @@ jump_statement
     ;
 
 translation_unit
-    : /*empty*/
+    : /* empty */
     | external_declaration
-    | translation_unit external_declaration
     ;
 
 external_declaration
     : function_definition
-    | declaration
+    | var_definition
+    | external_declaration function_definition
+    | external_declaration var_definition
     ;
 
 formal
@@ -286,10 +259,9 @@ formals_list
     | formals_list TOK_COMMA formal
 
 function_definition
-    : declaration_specifiers IDENT TOK_PAREN_L TOK_PAREN_R compound_statement
-    | declaration_specifiers IDENT TOK_PAREN_L formals_list TOK_PAREN_R compound_statement
+    : KWD_DEF IDENT TOK_PAREN_L TOK_PAREN_R compound_statement
+    | KWD_DEF IDENT TOK_PAREN_L formals_list TOK_PAREN_R compound_statement
     ;
-
 
 %%
 #include <stdio.h>
