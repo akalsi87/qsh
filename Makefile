@@ -41,6 +41,7 @@ CP ?= cp
 
 BISON ?= bison
 FLEX  ?= flex
+STRIP ?= strip
 
 VER=0.0.1
 
@@ -122,6 +123,7 @@ $(OBJ_DIR)/$(PARSER_DIR)/parser.o: WARN += -Wno-unused-function -Wno-unused-para
 $(QSH_LIB): $(OBJS)
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
 	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS)
+	$(STRIP) $(QSH_LIB)
 
 $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'
