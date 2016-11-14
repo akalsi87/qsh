@@ -137,11 +137,11 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 
 install: $(PREFIX)/lib/$(LIB_NAME)
 
-test_prep: install
+$(PREFIX)/lib/$(LIB_NAME).dbg: install
 	$(CP_DLL_TEST)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t))) |test_prep
+$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t))) $(PREFIX)/lib/$(LIB_NAME).dbg
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
