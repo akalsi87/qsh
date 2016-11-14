@@ -23,7 +23,7 @@ LD   ?= ld
 PREFIX ?= install
 
 DEBUG_OPTS := -O0 -g
-RELEASE_OPTS := -O3
+RELEASE_OPTS := -Os
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh

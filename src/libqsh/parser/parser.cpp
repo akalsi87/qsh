@@ -13,9 +13,9 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #include <fstream>
 #include <sstream>
 
-namespace {
+namespace qsh {
 
-extern "C" {
+namespace {
 
 #ifndef NDEBUG
 #  define YYDEBUG 1
@@ -27,11 +27,7 @@ extern "C" {
 #include "parser.gen"
 #include "tokenizer.gen"
 
-} /* extern "C" */
-
 } // namespace
-
-namespace qsh {
 
 struct parser_impl
 {
