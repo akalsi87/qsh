@@ -23,7 +23,7 @@ LD   ?= ld
 PREFIX ?= install
 
 DEBUG_OPTS := -O0 -g
-RELEASE_OPTS := -Os
+RELEASE_OPTS := -O2
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
@@ -41,7 +41,7 @@ CP ?= cp
 
 BISON ?= bison
 FLEX  ?= flex
-STRIP ?= strip
+OBJCOPY ?= objcopy
 
 VER=0.0.1
 
@@ -72,14 +72,15 @@ CXX_DEP_FILES := $(CXX_SRC_FILES:.cpp=.d)
 
 OBJS := $(C_OBJ_FILES) $(CXX_OBJ_FILES)
 HDRS := $(shell find * | grep 'include.*\.hpp')
+SRCS := $(C_SRC_FILES) $(CXX_SRC_FILES)
 
 LIB_NAME:=libqsh.$(SL)
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
 
 ifneq ($(OS),Windows_NT)
-	CP_DLL_TEST := @$(ECHO) 'Using rpath to link tests...'
+	CP_DLL_TEST := $(CP) $(QSH_LIB).dbg $(PREFIX)/lib/
 else
-	CP_DLL_TEST := $(CP) $(QSH_LIB) .
+	CP_DLL_TEST := $(CP) $(QSH_LIB)* .
 endif
 
 .PHONY: check grammar check
@@ -123,7 +124,10 @@ $(OBJ_DIR)/$(PARSER_DIR)/parser.o: WARN += -Wno-unused-function -Wno-unused-para
 $(QSH_LIB): $(OBJS)
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
 	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS)
-	$(STRIP) $(QSH_LIB)
+	@$(PRINTF) 'Stripping    \033[1m$@\033[0m...\n'
+	$(OBJCOPY) --only-keep-debug $(QSH_LIB) $(QSH_LIB).dbg
+	$(OBJCOPY) --strip-debug $(QSH_LIB)
+	$(OBJCOPY) --add-gnu-debuglink=$(QSH_LIB).dbg $(QSH_LIB)
 
 $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'
@@ -132,10 +136,12 @@ $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	$(CP) -f $(QSH_LIB) $(PREFIX)/lib
 
 install: $(PREFIX)/lib/$(LIB_NAME)
+
+test_prep: install
 	$(CP_DLL_TEST)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
+$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t))) |test_prep
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
 	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
