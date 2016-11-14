@@ -10,10 +10,18 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #ifndef _qsh_config_h_
 #define _qsh_config_h_
 
-#if defined(BUILD_QSH)
-#  define QSH_API __attribute__ ((visibility ("default")))
+#if !defined(_WIN32) && !defined(__CYGWIN__)
+#  if defined(BUILD_QSH)
+#    define QSH_API __attribute__((visibility ("default")))
+#  else
+#    define QSH_API
+#  endif
 #else
-#  define QSH_API
+#  if defined(BUILD_QSH)
+#    define QSH_API __attribute__((dllexport))
+#  else
+#    define QSH_API __attribute__((dllimport))
+#  endif
 #endif
 
 #if defined(__cplusplus)
