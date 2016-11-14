@@ -1,11 +1,19 @@
 # Makefile for qsh
 
+ifeq ($(DEBUG),1)
+	OPTS = $(DEBUG_OPTS)
+else
+	OPTS = $(RELEASE_OPTS)
+endif
+
 ifeq ($(OS),Windows_NT)
 	LD := g++
 	SL := dll
+	LDFLAGS := -Wl,--gc-sections
 else
 	LD := ld
 	SL := so
+	LDFLAGS := --gc-sections
 endif
 
 CC   ?= cc
@@ -15,17 +23,12 @@ LD   ?= ld
 PREFIX ?= install
 
 DEBUG_OPTS := -O0 -g
-RELEASE_OPTS := -O3 -g
-
-# debug
-OPTS ?= $(DEBUG_OPTS)
-# release
-# OPTS ?= $(RELEASE_OPTS)
+RELEASE_OPTS := -O3
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
-CFLAGS += -DBUILD_QSH -std=c99 -fvisibility=hidden -fPIC
-CXXFLAGS += -DBUILD_QSH -std=c++11 -fvisibility=hidden -fPIC
+CFLAGS += -DBUILD_QSH -std=c99 -fvisibility=hidden -fPIC -fdata-sections -ffunction-sections
+CXXFLAGS += -DBUILD_QSH -std=c++11 -fvisibility=hidden -fPIC -fdata-sections -ffunction-sections
 LDFLAGS += -shared
 
 CAT ?= cat
@@ -72,7 +75,7 @@ HDRS := $(shell find * | grep 'include.*\.hpp')
 LIB_NAME:=libqsh.$(SL)
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
 
-ifeq ($(OS),Windows_NT)
+ifneq ($(OS),Windows_NT)
 	CP_DLL_TEST := @$(ECHO) 'Using rpath to link tests...'
 else
 	CP_DLL_TEST := $(CP) $(QSH_LIB) .
@@ -132,7 +135,7 @@ install: $(PREFIX)/lib/$(LIB_NAME)
 $(TESTS): WARN += -Wno-unused-parameter
 $(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t)))
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
-	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(CXXFLAGS) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
+	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
 %.log: $(TESTS)
 	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'

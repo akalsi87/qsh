@@ -58,6 +58,9 @@ const char* get_env(const char* e)
 const char* tmpdir()
 {
     static std::string tmp;
+    if (!tmp.empty()) {
+        return tmp.c_str();
+    }
     if (tmp.empty()) {
         tmp = get_env("TMPDIR");
     }
@@ -70,7 +73,16 @@ const char* tmpdir()
     if (tmp.empty()) {
         tmp = get_env("TEMPDIR");
     }
-    tmp = "/tmp";
+    if (tmp.empty()) {
+        tmp = "/tmp";
+    }
+#if defined(WIN32)
+    for (char& c : tmp) {
+        if (c == '\\') {
+            c = '/';
+        }
+    }
+#endif
     return tmp.c_str();
 }
 
