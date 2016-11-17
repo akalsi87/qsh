@@ -15,6 +15,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #include "qsh/util/range.hpp"
 
 #include <cassert>
+#include <vector>
 
 namespace qsh {
 
@@ -25,9 +26,16 @@ class type_factory;
 class type;
 class type_impl;
 
-struct type_impl : noncopyable
+class arena;
+
+struct QSH_API type_impl : noncopyable
 {
   public:
+    size_t type_size() const
+    {
+        return m_type_size;
+    }
+
     void copy(value_ptr dst, const_value_ptr src) const
     {
         assert(m_copy);
@@ -36,7 +44,7 @@ struct type_impl : noncopyable
 
     void destroy(value_ptr dst) const
     {
-        m_destroy ? m_destroy(dst) : 0;
+        m_destroy ? m_destroy(dst), 0 : 0;
     }
 
     size_t size(const_value_ptr dst) const
@@ -56,12 +64,13 @@ struct type_impl : noncopyable
         return a == b ? false :  m_less(a, b);
     }
   private:
-    typedef int (*copy_fn)(value_ptr dst, const_value_ptr src);
-    typedef int (*destroy_fn)(value_ptr dst);
+    typedef void (*copy_fn)(value_ptr dst, const_value_ptr src);
+    typedef void (*destroy_fn)(value_ptr dst);
     typedef size_t (*size_fn)(const_value_ptr dst);
     typedef bool (*equal_fn)(const_value_ptr a, const_value_ptr b);
     typedef bool (*less_fn)(const_value_ptr a, const_value_ptr b);
 
+    size_t m_type_size;
     copy_fn m_copy;
     destroy_fn m_destroy;
     size_fn m_size;
@@ -89,6 +98,11 @@ class type : noncopyable
         TUPLE,
         UNKNOWN
     };
+
+    using int_type = long;
+    using float_type = double;
+    using char_type = char;
+    using string_type = std::vector<char>;
 
     kind_type kind() const
     {
@@ -121,6 +135,11 @@ class type : noncopyable
         auto comp = reinterpret_cast<type const* const*>(this+1);
         return types_range(comp, comp + m_num_types);
     }
+
+    type_impl const* impl() const
+    {
+        return m_impl;
+    }
   private:
     kind_type m_kind : 4;
     uint64_t m_num_types : 60;
@@ -130,6 +149,9 @@ class type : noncopyable
     {
         return reinterpret_cast<const type**>(this+1);
     }
+
+    static
+    type_impl* create_type_impl(arena& ar, type::kind_type k);
 
     type() = default;
     friend class type_factory;

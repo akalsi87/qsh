@@ -12,8 +12,86 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #include "qsh/alloc/arena.hpp"
 
 #include <unordered_map>
+#include <vector>
 
 namespace qsh {
+
+namespace {
+
+template <class T, bool is_array>
+struct value_type_picker;
+
+template <class T>
+struct value_type_picker<T, false>
+{
+    using value_type = T;
+};
+
+template <class T>
+struct value_type_picker<T, true>
+{
+    using value_type = std::vector<T>;
+};
+
+template <class value_t, bool is_array>
+class simple_type_impl
+{
+    using value_type = typename value_type_picker<value_t, is_array>::value_type;
+
+    static
+    value_type* pvalue(value_ptr x)
+    {
+        return reinterpret_cast<value_type*>(x);
+    }
+
+    static
+    value_type const* pvalue(const_value_ptr x)
+    {
+        return reinterpret_cast<value_type const*>(x);
+    }
+  public:
+    static const size_t type_size = sizeof(value_type);
+
+    static
+    void copy(value_ptr dst, const_value_ptr src)
+    {
+        *pvalue(dst) = *pvalue(src);
+    }
+
+    static
+    void destroy(value_ptr dst)
+    {
+        pvalue(dst)->~value_type();
+    }
+
+    static
+    size_t size(const_value_ptr dst, int _=int())
+    {
+        using fake = typename std::enable_if<is_array, size_t>::type;
+        static_cast<void>(fake());
+        return pvalue(dst)->size();
+    }
+
+    static
+    size_t size(const_value_ptr)
+    {
+        return 1;
+    }
+
+    static
+    bool equal(const_value_ptr a, const_value_ptr b)
+    {
+        return *pvalue(a) == *pvalue(b);
+    }
+
+    static
+    bool less(const_value_ptr a, const_value_ptr b)
+    {
+        return *pvalue(a) < *pvalue(b);
+    }
+};
+
+} // namespace
 
 struct type_key
 {
@@ -63,6 +141,7 @@ struct type_factory::impl
     type_map m_map;
 };
 
+static inline
 size_t type_size(size_t ncomps)
 {
     return sizeof(type) + ncomps*sizeof(void*);
@@ -78,6 +157,34 @@ type_factory::~type_factory()
 {
 }
 
+type_impl* type::create_type_impl(arena& a, type::kind_type k)
+{
+    auto timpl = reinterpret_cast<type_impl*>(a.allocate(sizeof(type_impl)));
+    switch (k) {
+#define CASE_(ty, cty, arr) \
+    case (ty):    \
+    {             \
+        using impl = simple_type_impl<cty, arr>; \
+        timpl->m_type_size = impl::type_size; \
+        timpl->m_copy = impl::copy; \
+        timpl->m_destroy = impl::destroy; \
+        timpl->m_size = impl::size; \
+        timpl->m_equal = impl::equal; \
+        timpl->m_less = impl::less; \
+    } \
+    break
+    CASE_(type::INT, type::int_type, false);
+    CASE_(type::FLOAT, type::float_type, false);
+    CASE_(type::CHAR, type::char_type, false);
+    CASE_(type::STRING, type::string_type, false);
+    CASE_(type::INT_ARR, type::int_type, true);
+    CASE_(type::FLOAT_ARR, type::float_type, true);
+    CASE_(type::STRING_ARR, type::string_type, true);
+    default: break;
+    }
+    return timpl;
+}
+
 type const* type_factory::get(type::kind_type k, types_range ts)
 {
     auto& map = m_impl->m_map;
@@ -89,7 +196,11 @@ type const* type_factory::get(type::kind_type k, types_range ts)
     auto p = reinterpret_cast<type*>(m_impl->m_arena.allocate(sz));
     p->m_kind = k;
     p->m_num_types = ntypes;
-    p->m_impl = nullptr;
+    if (k != type::TUPLE) {
+        p->m_impl = type::create_type_impl(m_impl->m_arena, k);
+    } else {
+        p->m_impl = nullptr;
+    }
     auto t = p->types_begin();
     for (size_t i = 0; i < ntypes; ++i) {
         t[i] = ts[i];

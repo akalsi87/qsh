@@ -24,6 +24,7 @@ CPP_TEST( test_uniqueness )
             TEST_TRUE(p);
             TEST_TRUE(f.get(kind) == p);
             TEST_TRUE(p->kind() == kind);
+            TEST_TRUE(p->kind() == type::TUPLE || p->impl());
             TEST_TRUE(p->is_unknown() == (kind == type::UNKNOWN));
             TEST_TRUE(p->is_tuple() == (kind == type::TUPLE));
             TEST_TRUE(p->types().size() == 0);
@@ -34,5 +35,25 @@ CPP_TEST( test_uniqueness )
         type const* ts[3] = { f.get(type::INT), f.get(type::CHAR), f.get(type::STRING_ARR) };
         auto p = f.get(type::TUPLE, types_range(ts, 3));
         TEST_TRUE(p);
+        TEST_TRUE(p == f.get(type::TUPLE, types_range(ts, 3)));
+        TEST_TRUE(p->types().size() == 3);
+        TEST_TRUE(p->types()[0] == ts[0]);
+        TEST_TRUE(p->types()[1] == ts[1]);
+        TEST_TRUE(p->types()[2] == ts[2]);
+    }
+}
+
+CPP_TEST( test_type_impl )
+{
+    qsh::type_factory f;
+    using qsh::type;
+    {// type INT
+        type::int_type x = 5;
+        type::int_type y;
+        auto tInt = f.get(type::INT);
+        ASSERT_TRUE(tInt && tInt->impl());
+        TEST_TRUE(tInt->impl()->type_size() == sizeof(type::int_type));
+        tInt->impl()->copy(&y, &x);
+        TEST_TRUE(y == x);
     }
 }
