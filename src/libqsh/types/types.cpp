@@ -159,11 +159,12 @@ type_factory::~type_factory()
 
 type_impl* type::create_type_impl(arena& a, type::kind_type k)
 {
-    auto timpl = reinterpret_cast<type_impl*>(a.allocate(sizeof(type_impl)));
+    auto timpl = nullptr;
     switch (k) {
 #define CASE_(ty, cty, arr) \
     case (ty):    \
     {             \
+        timpl = reinterpret_cast<type_impl*>(a.allocate(sizeof(type_impl))); \
         using impl = simple_type_impl<cty, arr>; \
         timpl->m_type_size = impl::type_size; \
         timpl->m_copy = impl::copy; \
@@ -190,22 +191,22 @@ type const* type_factory::get(type::kind_type k, types_range ts)
     auto& map = m_impl->m_map;
     auto it = map.find({k, ts});
     if (it != map.end()) return it->second;
+
+    // not found, create and memoize
     assert(ts.size() == 0 || k == type::TUPLE);
     auto ntypes = ts.size();
     auto sz = type_size(ntypes);
     auto p = reinterpret_cast<type*>(m_impl->m_arena.allocate(sz));
     p->m_kind = k;
     p->m_num_types = ntypes;
-    if (k != type::TUPLE) {
-        p->m_impl = type::create_type_impl(m_impl->m_arena, k);
-    } else {
-        p->m_impl = nullptr;
-    }
+    p->m_impl = type::create_type_impl(m_impl->m_arena, k);
     auto t = p->types_begin();
     for (size_t i = 0; i < ntypes; ++i) {
         t[i] = ts[i];
     }
     map[{k, ts}] = p;
+
+    // return!
     return p;
 }
 
