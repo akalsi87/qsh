@@ -99,7 +99,7 @@ class type : noncopyable
         UNKNOWN
     };
 
-    using int_type = long;
+    using int_type = ssize_t;
     using float_type = double;
     using char_type = char;
     using string_type = std::vector<char>;
