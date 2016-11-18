@@ -13,51 +13,20 @@
 #ifndef _qsh_parser_gen_
 #define _qsh_parser_gen_
 
-
-/* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union
-{
-    long   l;
-    double d;
-    void*  p;
-} YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
-#endif
-
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void* yyscan_t;
-#endif
-
-/* Location type.  */
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
-{
-    int first_line;
-    int first_column;
-    int last_line;
-    int last_column;
-};
-# define YYLTYPE_IS_DECLARED 1
-# define YYLTYPE_IS_TRIVIAL 1
-#endif
+#include "parse_tree_c.h"
 
 int yylex(YYSTYPE * yyval_param, YYLTYPE * yylloc_param, void * yyscanner);
-int yyerror(YYLTYPE* yylloc_param, void *scanner, const char *s);
+int yyerror(YYLTYPE* yylloc_param, void *scanner, char const* s);
 
+#define PUSH_NODE(k, n) qsh_push_node(yyvalp->ctxt, yyvalp->loc->first_line, yyvalp->loc->first_column, 0, 0, k, n)
 
-}
-
-%code requires {
 }
 
 %token KWD_BREAK KWD_CONTINUE KWD_DEF KWD_ELSE KWD_FOR KWD_IF KWD_RETURN KWD_VAR KWD_WHILE
 %token IDENT LIT_INT_HEX LIT_INT_DEC LIT_FLOAT LIT_CHAR LIT_STRING
 %token OP_SHIFT_L OP_SHIFT_R OP_INCR OP_DECR OP_AND OP_OR OP_LE OP_GE OP_EQ OP_NE
 %token TOK_SEMI TOK_CURLY_L TOK_CURLY_R TOK_COMMA TOK_COLON TOK_ASSIGN TOK_PAREN_L TOK_PAREN_R TOK_SQ_L TOK_SQ_R TOK_AND TOK_OR TOK_NOT TOK_FLIP TOK_MINUS TOK_PLUS TOK_MUL TOK_DIV TOK_MOD TOK_LT TOK_GT TOK_XOR TOK_TERNARY
+%token EXPR EXPR_INDX EXPR_CALL VAR_DECL
 
 %start translation_unit
 %%
@@ -65,7 +34,7 @@ int yyerror(YYLTYPE* yylloc_param, void *scanner, const char *s);
 primary_expression
     : IDENT
     | constant
-    | TOK_PAREN_L expression TOK_PAREN_R
+    | TOK_PAREN_L expression TOK_PAREN_R { PUSH_NODE(EXPR, 3); }
     ;
 
 constant
@@ -78,8 +47,8 @@ constant
 
 postfix_expression
     : primary_expression
-    | postfix_expression TOK_SQ_L expression TOK_SQ_R
-    | postfix_expression TOK_PAREN_L TOK_PAREN_R
+    | postfix_expression TOK_SQ_L expression TOK_SQ_R { PUSH_NODE(EXPR_INDX, 4); }
+    | postfix_expression TOK_PAREN_L TOK_PAREN_R { PUSH_NODE(EXPR_CALL, 3); }
     | postfix_expression TOK_PAREN_L argument_expression_list TOK_PAREN_R
     | postfix_expression OP_INCR
     | postfix_expression OP_DECR
@@ -173,7 +142,7 @@ expression
     ;
 
 var_definition
-    : KWD_VAR init_declarator TOK_SEMI
+    : KWD_VAR init_declarator TOK_SEMI { PUSH_NODE(VAR_DECL, 3); }
     ;
 
 init_declarator
@@ -260,6 +229,9 @@ function_definition
     ;
 
 %%
+
+#undef PUSH_NODE
+
 #include <stdio.h>
 
 int yyerror(YYLTYPE* locp, yyscan_t scanner, const char* msg) {

@@ -39,11 +39,6 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
-/* "%code requires" blocks.  */
-#line 54 "src/libqsh/parser/parser.l" /* glr.c:2555  */
-
-
-#line 47 "src/libqsh/parser/parser.h" /* glr.c:2555  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -97,7 +92,11 @@ extern int yydebug;
     TOK_LT = 302,
     TOK_GT = 303,
     TOK_XOR = 304,
-    TOK_TERNARY = 305
+    TOK_TERNARY = 305,
+    EXPR = 306,
+    EXPR_INDX = 307,
+    EXPR_CALL = 308,
+    VAR_DECL = 309
   };
 #endif
 

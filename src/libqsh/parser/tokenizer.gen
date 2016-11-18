@@ -577,8 +577,9 @@ static yyconst flex_int32_t yy_rule_can_match_eol[55] =
 /* for details, see http://www.quut.com/c/ANSI-C-grammar-l.html
 * or http://www.quut.com/c/ANSI-C-grammar-y.html
 */
-#line 24 "src/libqsh/parser/tokenizer.l"
+#line 26 "src/libqsh/parser/tokenizer.l"
 #include <stdio.h>
+#include "parse_tree_c.h"
 #include "parser.h"
 
 #define YY_USER_ACTION                  \
@@ -589,9 +590,11 @@ static yyconst flex_int32_t yy_rule_can_match_eol[55] =
         yylloc->last_line = yylineno;   \
     }
 
+#define PUSH_NODE(k) qsh_push_node(yyextra, yylloc->first_line, yylloc->first_column, yytext, yyleng, k, 0); *yylval = { yylloc, yytext, yyleng, yyextra }
+
 static
 void consume_comment(yyscan_t, YYLTYPE* l);
-#line 595 "src/libqsh/parser/tokenizer.gen"
+#line 598 "src/libqsh/parser/tokenizer.gen"
 
 #define INITIAL 0
 
@@ -872,10 +875,10 @@ YY_DECL
 		}
 
 	{
-#line 39 "src/libqsh/parser/tokenizer.l"
+#line 44 "src/libqsh/parser/tokenizer.l"
 
 
-#line 879 "src/libqsh/parser/tokenizer.gen"
+#line 882 "src/libqsh/parser/tokenizer.gen"
 
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
@@ -946,276 +949,276 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 41 "src/libqsh/parser/tokenizer.l"
+#line 46 "src/libqsh/parser/tokenizer.l"
 { consume_comment(yyscanner, yylloc); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 42 "src/libqsh/parser/tokenizer.l"
-{ /* eat the line */    }
+#line 47 "src/libqsh/parser/tokenizer.l"
+{ /* eat the line */        }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 43 "src/libqsh/parser/tokenizer.l"
-{ return KWD_BREAK;     }
+#line 48 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_BREAK);     }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 44 "src/libqsh/parser/tokenizer.l"
-{ return KWD_CONTINUE;  }
+#line 49 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_CONTINUE);  }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 45 "src/libqsh/parser/tokenizer.l"
-{ return KWD_DEF;       }
+#line 50 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_DEF);       }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 46 "src/libqsh/parser/tokenizer.l"
-{ return KWD_ELSE;      }
+#line 51 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_ELSE);      }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 47 "src/libqsh/parser/tokenizer.l"
-{ return KWD_FOR;       }
+#line 52 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_FOR);       }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "src/libqsh/parser/tokenizer.l"
-{ return KWD_IF;        }
+#line 53 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_IF);        }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 49 "src/libqsh/parser/tokenizer.l"
-{ return KWD_RETURN;    }
+#line 54 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_RETURN);    }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 50 "src/libqsh/parser/tokenizer.l"
-{ return KWD_VAR;       }
+#line 55 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_VAR);       }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 51 "src/libqsh/parser/tokenizer.l"
-{ return KWD_WHILE;     }
+#line 56 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(KWD_WHILE);     }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 53 "src/libqsh/parser/tokenizer.l"
-{ return IDENT;         }
+#line 58 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(IDENT);         }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 55 "src/libqsh/parser/tokenizer.l"
-{ return LIT_INT_HEX;   }
+#line 60 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(LIT_INT_HEX);   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 56 "src/libqsh/parser/tokenizer.l"
-{ return LIT_INT_DEC;   }
+#line 61 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(LIT_INT_DEC);   }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 58 "src/libqsh/parser/tokenizer.l"
-{ return LIT_FLOAT;     }
+#line 63 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(LIT_FLOAT);     }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 60 "src/libqsh/parser/tokenizer.l"
-{ return LIT_CHAR;      }
+#line 65 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(LIT_CHAR);      }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 62 "src/libqsh/parser/tokenizer.l"
-{ return LIT_STRING;    }
+#line 67 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(LIT_STRING);    }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 64 "src/libqsh/parser/tokenizer.l"
-{ return OP_SHIFT_L;    }
+#line 69 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_SHIFT_L);    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 65 "src/libqsh/parser/tokenizer.l"
-{ return OP_SHIFT_R;    }
+#line 70 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_SHIFT_R);    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 67 "src/libqsh/parser/tokenizer.l"
-{ return OP_INCR;       }
+#line 72 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_INCR);       }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 68 "src/libqsh/parser/tokenizer.l"
-{ return OP_DECR;       }
+#line 73 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_DECR);       }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 70 "src/libqsh/parser/tokenizer.l"
-{ return OP_AND;        }
+#line 75 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_AND);        }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 71 "src/libqsh/parser/tokenizer.l"
-{ return OP_OR;         }
+#line 76 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_OR);         }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 73 "src/libqsh/parser/tokenizer.l"
-{ return OP_LE;         }
+#line 78 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_LE);         }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 74 "src/libqsh/parser/tokenizer.l"
-{ return OP_GE;         }
+#line 79 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_GE);         }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 75 "src/libqsh/parser/tokenizer.l"
-{ return OP_EQ;         }
+#line 80 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_EQ);         }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 76 "src/libqsh/parser/tokenizer.l"
-{ return OP_NE;         }
+#line 81 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(OP_NE);         }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 78 "src/libqsh/parser/tokenizer.l"
-{ return TOK_SEMI;      }
+#line 83 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_SEMI);      }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 79 "src/libqsh/parser/tokenizer.l"
-{ return TOK_CURLY_L;   }
+#line 84 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_CURLY_L);   }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 80 "src/libqsh/parser/tokenizer.l"
-{ return TOK_CURLY_R;   }
+#line 85 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_CURLY_R);   }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 81 "src/libqsh/parser/tokenizer.l"
-{ return TOK_COMMA;     }
+#line 86 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_COMMA);     }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 82 "src/libqsh/parser/tokenizer.l"
-{ return TOK_COLON;     }
+#line 87 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_COLON);     }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 83 "src/libqsh/parser/tokenizer.l"
-{ return TOK_ASSIGN;    }
+#line 88 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_ASSIGN);    }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 84 "src/libqsh/parser/tokenizer.l"
-{ return TOK_PAREN_L;   }
+#line 89 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_PAREN_L);   }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 85 "src/libqsh/parser/tokenizer.l"
-{ return TOK_PAREN_R;   }
+#line 90 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_PAREN_R);   }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 86 "src/libqsh/parser/tokenizer.l"
-{ return TOK_SQ_L;      }
+#line 91 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_SQ_L);      }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 87 "src/libqsh/parser/tokenizer.l"
-{ return TOK_SQ_R;      }
+#line 92 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_SQ_R);      }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 88 "src/libqsh/parser/tokenizer.l"
-{ return TOK_AND;       }
+#line 93 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_AND);       }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 89 "src/libqsh/parser/tokenizer.l"
-{ return TOK_OR;        }
+#line 94 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_OR);        }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 90 "src/libqsh/parser/tokenizer.l"
-{ return TOK_NOT;       }
+#line 95 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_NOT);       }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 91 "src/libqsh/parser/tokenizer.l"
-{ return TOK_FLIP;      }
+#line 96 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_FLIP);      }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 92 "src/libqsh/parser/tokenizer.l"
-{ return TOK_MINUS;     }
+#line 97 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_MINUS);     }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 93 "src/libqsh/parser/tokenizer.l"
-{ return TOK_PLUS;      }
+#line 98 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_PLUS);      }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 94 "src/libqsh/parser/tokenizer.l"
-{ return TOK_MUL;       }
+#line 99 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_MUL);       }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 95 "src/libqsh/parser/tokenizer.l"
-{ return TOK_DIV;       }
+#line 100 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_DIV);       }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 96 "src/libqsh/parser/tokenizer.l"
-{ return TOK_MOD;       }
+#line 101 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_MOD);       }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 97 "src/libqsh/parser/tokenizer.l"
-{ return TOK_LT;        }
+#line 102 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_LT);        }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 98 "src/libqsh/parser/tokenizer.l"
-{ return TOK_GT;        }
+#line 103 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_GT);        }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 99 "src/libqsh/parser/tokenizer.l"
-{ return TOK_XOR;       }
+#line 104 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_XOR);       }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 100 "src/libqsh/parser/tokenizer.l"
-{ return TOK_TERNARY;   }
+#line 105 "src/libqsh/parser/tokenizer.l"
+{ PUSH_NODE(TOK_TERNARY);   }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 101 "src/libqsh/parser/tokenizer.l"
+#line 106 "src/libqsh/parser/tokenizer.l"
 { /* disregard */       }
 	YY_BREAK
 case 52:
 /* rule 52 can match eol */
 YY_RULE_SETUP
-#line 102 "src/libqsh/parser/tokenizer.l"
+#line 107 "src/libqsh/parser/tokenizer.l"
 { yylloc->first_column = yylloc->last_column = 0; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 103 "src/libqsh/parser/tokenizer.l"
+#line 108 "src/libqsh/parser/tokenizer.l"
 { /* ignore bad chars */}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 105 "src/libqsh/parser/tokenizer.l"
+#line 110 "src/libqsh/parser/tokenizer.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1219 "src/libqsh/parser/tokenizer.gen"
+#line 1222 "src/libqsh/parser/tokenizer.gen"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2403,7 +2406,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 104 "src/libqsh/parser/tokenizer.l"
+#line 109 "src/libqsh/parser/tokenizer.l"
 
 
 

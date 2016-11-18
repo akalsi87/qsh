@@ -5,6 +5,8 @@
 %option ecs
 %option nodefault reentrant noyywrap yylineno
 
+
+
 S  [+-]
 D  [0-9]
 H  [a-fA-F0-9]
@@ -22,6 +24,7 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 
 %{
 #include <stdio.h>
+#include "parse_tree_c.h"
 #include "parser.h"
 
 #define YY_USER_ACTION                  \
@@ -32,6 +35,8 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
         yylloc->last_line = yylineno;   \
     }
 
+#define PUSH_NODE(k) qsh_push_node(yyextra, yylloc->first_line, yylloc->first_column, yytext, yyleng, k, 0); *yylval = { yylloc, yytext, yyleng, yyextra }
+
 static
 void consume_comment(yyscan_t, YYLTYPE* l);
 %}
@@ -39,65 +44,65 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 %%
 
 "/*"                            { consume_comment(yyscanner, yylloc); }
-"//".*                          { /* eat the line */    }
-"break"                         { return KWD_BREAK;     }
-"continue"                      { return KWD_CONTINUE;  }
-"def"                           { return KWD_DEF;       }
-"else"                          { return KWD_ELSE;      }
-"for"                           { return KWD_FOR;       }
-"if"                            { return KWD_IF;        }
-"return"                        { return KWD_RETURN;    }
-"var"                           { return KWD_VAR;       }
-"while"                         { return KWD_WHILE;     }
+"//".*                          { /* eat the line */        }
+"break"                         { PUSH_NODE(KWD_BREAK);     }
+"continue"                      { PUSH_NODE(KWD_CONTINUE);  }
+"def"                           { PUSH_NODE(KWD_DEF);       }
+"else"                          { PUSH_NODE(KWD_ELSE);      }
+"for"                           { PUSH_NODE(KWD_FOR);       }
+"if"                            { PUSH_NODE(KWD_IF);        }
+"return"                        { PUSH_NODE(KWD_RETURN);    }
+"var"                           { PUSH_NODE(KWD_VAR);       }
+"while"                         { PUSH_NODE(KWD_WHILE);     }
 
-{IL}{A}*                        { return IDENT;         }
+{IL}{A}*                        { PUSH_NODE(IDENT);         }
 
-{HL}{H}+                        { return LIT_INT_HEX;   }
-{S}?{D}+                        { return LIT_INT_DEC;   }
+{HL}{H}+                        { PUSH_NODE(LIT_INT_HEX);   }
+{S}?{D}+                        { PUSH_NODE(LIT_INT_DEC);   }
 
-{S}?{D}+([\.]{E})?              { return LIT_FLOAT;     }
+{S}?{D}+([\.]{E})?              { PUSH_NODE(LIT_FLOAT);     }
 
-"'"([^'\\\n]|{ES})"'"           { return LIT_CHAR;      }
+"'"([^'\\\n]|{ES})"'"           { PUSH_NODE(LIT_CHAR);      }
 
-(\"([^"\\\n]|{ES})*\"{WS}*)+    { return LIT_STRING;    }
+(\"([^"\\\n]|{ES})*\"{WS}*)+    { PUSH_NODE(LIT_STRING);    }
 
-">>"                            { return OP_SHIFT_L;    }
-"<<"                            { return OP_SHIFT_R;    }
+">>"                            { PUSH_NODE(OP_SHIFT_L);    }
+"<<"                            { PUSH_NODE(OP_SHIFT_R);    }
 
-"++"                            { return OP_INCR;       }
-"--"                            { return OP_DECR;       }
+"++"                            { PUSH_NODE(OP_INCR);       }
+"--"                            { PUSH_NODE(OP_DECR);       }
 
-"&&"                            { return OP_AND;        }
-"||"                            { return OP_OR;         }
+"&&"                            { PUSH_NODE(OP_AND);        }
+"||"                            { PUSH_NODE(OP_OR);         }
 
-"<="                            { return OP_LE;         }
-">="                            { return OP_GE;         }
-"=="                            { return OP_EQ;         }
-"!="                            { return OP_NE;         }
+"<="                            { PUSH_NODE(OP_LE);         }
+">="                            { PUSH_NODE(OP_GE);         }
+"=="                            { PUSH_NODE(OP_EQ);         }
+"!="                            { PUSH_NODE(OP_NE);         }
 
-";"                             { return TOK_SEMI;      }
-"{"                             { return TOK_CURLY_L;   }
-"}"                             { return TOK_CURLY_R;   }
-","                             { return TOK_COMMA;     }
-":"                             { return TOK_COLON;     }
-"="                             { return TOK_ASSIGN;    }
-"("                             { return TOK_PAREN_L;   }
-")"                             { return TOK_PAREN_R;   }
-"["                             { return TOK_SQ_L;      }
-"]"                             { return TOK_SQ_R;      }
-"&"                             { return TOK_AND;       }
-"|"                             { return TOK_OR;        }
-"!"                             { return TOK_NOT;       }
-"~"                             { return TOK_FLIP;      }
-"-"                             { return TOK_MINUS;     }
-"+"                             { return TOK_PLUS;      }
-"*"                             { return TOK_MUL;       }
-"/"                             { return TOK_DIV;       }
-"%"                             { return TOK_MOD;       }
-"<"                             { return TOK_LT;        }
-">"                             { return TOK_GT;        }
-"^"                             { return TOK_XOR;       }
-"?"                             { return TOK_TERNARY;   }
+";"                             { PUSH_NODE(TOK_SEMI);      }
+"{"                             { PUSH_NODE(TOK_CURLY_L);   }
+"}"                             { PUSH_NODE(TOK_CURLY_R);   }
+","                             { PUSH_NODE(TOK_COMMA);     }
+":"                             { PUSH_NODE(TOK_COLON);     }
+"="                             { PUSH_NODE(TOK_ASSIGN);    }
+"("                             { PUSH_NODE(TOK_PAREN_L);   }
+")"                             { PUSH_NODE(TOK_PAREN_R);   }
+"["                             { PUSH_NODE(TOK_SQ_L);      }
+"]"                             { PUSH_NODE(TOK_SQ_R);      }
+"&"                             { PUSH_NODE(TOK_AND);       }
+"|"                             { PUSH_NODE(TOK_OR);        }
+"!"                             { PUSH_NODE(TOK_NOT);       }
+"~"                             { PUSH_NODE(TOK_FLIP);      }
+"-"                             { PUSH_NODE(TOK_MINUS);     }
+"+"                             { PUSH_NODE(TOK_PLUS);      }
+"*"                             { PUSH_NODE(TOK_MUL);       }
+"/"                             { PUSH_NODE(TOK_DIV);       }
+"%"                             { PUSH_NODE(TOK_MOD);       }
+"<"                             { PUSH_NODE(TOK_LT);        }
+">"                             { PUSH_NODE(TOK_GT);        }
+"^"                             { PUSH_NODE(TOK_XOR);       }
+"?"                             { PUSH_NODE(TOK_TERNARY);   }
 {WS}+                           { /* disregard */       }
 {NL}                            { yylloc->first_column = yylloc->last_column = 0; }
 .                               { /* ignore bad chars */}
