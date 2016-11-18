@@ -62,7 +62,7 @@ C_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(di
 CXX_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.cpp)))
 
 TEST_SRC_FILES := $(foreach dir,$(TEST_DIRS),$(wildcard $(dir)/*.cpp))
-TESTS := $(TEST_SRC_FILES:.cpp=)
+TESTS := $(TEST_SRC_FILES:.cpp=.test)
 TEST_LOGS := $(TEST_SRC_FILES:.cpp=.log)
 
 C_OBJ_FILES := $(C_SRC_FILES:.c=.o)
@@ -127,15 +127,15 @@ $(QSH_LIB): $(OBJS)
 	@$(PRINTF) 'Linking      \033[1m$@\033[0m...\n'
 	$(LD) -o $(QSH_LIB) $(LDFLAGS) $(OBJS)
 	@$(PRINTF) 'Stripping    \033[1m$@\033[0m...\n'
-	$(OBJCOPY) --only-keep-debug $(QSH_LIB) $(QSH_LIB).dbg
+	$(OBJCOPY) $(QSH_LIB) $(DBG_LIB)
 	$(OBJCOPY) --strip-debug $(QSH_LIB)
-	$(OBJCOPY) --add-gnu-debuglink=$(QSH_LIB).dbg $(QSH_LIB)
+	$(OBJCOPY) --add-gnu-debuglink=$(DBG_LIB) $(QSH_LIB)
 
 $(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'
 	$(MKDIR) -p $(PREFIX)/include $(PREFIX)/lib
 	$(CP) -rf include/* $(PREFIX)/include
-	$(CP) -f $(QSH_LIB) $(PREFIX)/lib
+	$(CP) -f $(QSH_LIB) $(DBG_LIB) $(PREFIX)/lib
 
 install: $(PREFIX)/lib/$(LIB_NAME)
 
@@ -143,15 +143,18 @@ $(DBG_LIB): install
 	$(CP_DLL_TEST)
 
 $(TESTS): WARN += -Wno-unused-parameter
-$(TESTS): $(PREFIX)/lib/$(LIB_NAME) $(foreach t,$(TESTS),$(addsuffix .cpp,$(t))) $(DBG_LIB)
+tests/%.test: tests/%.cpp $(PREFIX)/lib/$(LIB_NAME) $(DBG_LIB)
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
-	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $(addsuffix .cpp,$@) -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
+	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $< -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
 
-%.log: $(TESTS)
-	@$(PRINTF) 'Running test \033[1m$(subst .log,,$@)\033[0m...\n'
-	($(subst .log,,$@) 2>&1) | tee $@
+tests/%.log: tests/%.test
+	@$(PRINTF) 'Running test \033[1m$<\033[0m...\n'
+	($< 2>&1) | tee $@
 
-check: $(TEST_LOGS)
+check: $(TEST_LOGS) $(TESTS)
+
+run_tests:
+	ls tests/*.test | sed 's/\.test/\.test \&\& /' | xargs -i{}  bash -c "{} true"
 
 clean:
 	$(RM) -r $(BUILD_DIR)

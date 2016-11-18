@@ -68,6 +68,7 @@ class stack_pimpl : noncopyable
     {
         auto p = get();
         if (p) p->~impl();
+        m_init = false;
     }
 
     impl* get()

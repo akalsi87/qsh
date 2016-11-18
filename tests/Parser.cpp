@@ -102,7 +102,7 @@ bool test_file(const char* id, const char* str)
 
 #define __PARSER_TEST(id, str, exp)                 \
   CPP_TEST(id) {                                    \
-    print_file( str);                               \
+    print_file(str);                                \
     auto id##_strg_ok = test_string(str) == exp;    \
     auto id##_file_ok = test_file(#id, str) == exp; \
     TEST_TRUE(id##_strg_ok);                        \
@@ -111,6 +111,11 @@ bool test_file(const char* id, const char* str)
 
 #define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)
 #define PARSER_TEST_NEG(id, str) __PARSER_TEST(id, str, false)
+
+PARSER_TEST_POS(
+    varDecl,
+    "var x = 1;\n"
+)
 
 PARSER_TEST_POS(
     singleLineCommentsOnly,

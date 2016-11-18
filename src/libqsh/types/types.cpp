@@ -159,7 +159,7 @@ type_factory::~type_factory()
 
 type_impl* type::create_type_impl(arena& a, type::kind_type k)
 {
-    auto timpl = nullptr;
+    type_impl* timpl = nullptr;
     switch (k) {
 #define CASE_(ty, cty, arr) \
     case (ty):    \

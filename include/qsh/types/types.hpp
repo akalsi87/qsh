@@ -10,6 +10,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #ifndef _qsh_types_types_hpp_
 #define _qsh_types_types_hpp_
 
+#include "qsh/config.h"
 #include "qsh/alloc/arena.hpp"
 #include "qsh/util/noncopyable.hpp"
 #include "qsh/util/range.hpp"
@@ -99,7 +100,7 @@ class type : noncopyable
         UNKNOWN
     };
 
-    using int_type = ssize_t;
+    using int_type = ptrdiff_t;
     using float_type = double;
     using char_type = char;
     using string_type = std::vector<char>;

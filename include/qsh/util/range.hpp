@@ -21,10 +21,10 @@ template <class T>
 class pointer_range
 {
   public:
-    pointer_range(T* begin, T* end) : m_begin(begin), m_end(end)
+    pointer_range(T* const begin, T* const end) : m_begin(begin), m_end(end)
     { }
 
-    pointer_range(T* begin = 0, size_t n = 0) : m_begin(begin), m_end(begin+n)
+    pointer_range(T* const begin = 0, size_t n = 0) : m_begin(begin), m_end(begin+n)
     { }
 
     T* begin() const

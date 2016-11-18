@@ -24,7 +24,7 @@ CPP_TEST( test_uniqueness )
             TEST_TRUE(p);
             TEST_TRUE(f.get(kind) == p);
             TEST_TRUE(p->kind() == kind);
-            TEST_TRUE(p->kind() == type::TUPLE || p->impl());
+            TEST_TRUE(p->kind() == type::UNKNOWN || p->kind() == type::TUPLE || p->impl());
             TEST_TRUE(p->is_unknown() == (kind == type::UNKNOWN));
             TEST_TRUE(p->is_tuple() == (kind == type::TUPLE));
             TEST_TRUE(p->types().size() == 0);

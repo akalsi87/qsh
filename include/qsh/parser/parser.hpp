@@ -22,10 +22,10 @@ class QSH_API parser : noncopyable
   public:
     parser();
     ~parser();
-    bool parse_file(const char* filename) const;
-    bool parse_string(const char* str) const;
+    bool parse_file(char const* filename) const;
+    bool parse_string(char const* str) const;
   private:
-    static const int IMPL_SIZE = 2*sizeof(size_t);
+    static const int IMPL_SIZE = 2*sizeof(size_t) + 64;
     stack_pimpl<parser_impl, IMPL_SIZE> m_impl;
 };
 
