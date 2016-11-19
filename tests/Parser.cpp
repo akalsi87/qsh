@@ -380,10 +380,27 @@ PARSER_TEST_TREE_POS(
     }
 }
 
-PARSER_TEST_POS(
+PARSER_TEST_TREE_POS(
     accessGlobalVar,
     "var x[] = {1};\n"
     "def get(var i) {\n"
     "  return x[i];\n"
     "}\n"
 )
+{
+    qsh::parser p;
+    auto tree = p.parse_string(accessGlobalVarData::text);
+    TEST_TRUE(tree.root()->sub().size() == 2);
+    TEST_WITH(varDef, tree.root()->sub()[0]) {
+        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+    }
+    TEST_WITH(funcDef, tree.root()->sub()[1]) {
+        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
+        TEST_WITH(ret, funcDef->stmts()[0]) {
+            TEST_WITH(val, ret->sub()[0]) {
+                TEST_TRUE(val->kind == qsh::EXPR_INDEX);
+                TEST_TRUE(val->sub()[1]->kind == qsh::IDENT);
+            }
+        }
+    }
+}
