@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(qsh)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set($ENV{BUILD_DIR} ${CMAKE_BINARY_DIR})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -O0")
 
 set(SOURCE_FILES
     include/qsh/alloc/allocator.hpp
