@@ -24,8 +24,8 @@ LD   ?= ld
 
 PREFIX ?= install
 
-DEBUG_OPTS := -O0 -g -fno-inline
-RELEASE_OPTS := -O2
+DEBUG_OPTS ?= -O0 -g -fno-inline
+RELEASE_OPTS ?= -O2
 
 WARN += -Wall -Wextra -Werror
 INCL += -Iinclude -Isrc/libqsh
