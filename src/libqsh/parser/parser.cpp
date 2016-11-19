@@ -105,6 +105,24 @@ class parse_tree_builder_impl
         m_stack.push_back(n);
     }
 
+    void push_var(int line, int col, char const* lit, int len, bool is_arr, int num_sub)
+    {
+        assert(1 <= (int)m_stack.size());
+        auto n = reinterpret_cast<parse_node*>(m_arena->allocate(sizeof(parse_node) + (num_sub+1)*sizeof(parse_node*)));
+        n->kind = VAR_DEF;
+        n->num_nodes = 1 + num_sub;
+        n->type = nullptr;
+        n->line = line;
+        n->col = col;
+        n->text = m_text->create_string(lit, len);
+        auto sn = n->sub();
+        sn[0] = reinterpret_cast<parse_node*>(is_arr ? 1 : 0);
+        for (int i = num_sub; i >= 1; --i) {
+            sn[i] = m_stack.back(); m_stack.pop_back();
+        }
+        m_stack.push_back(n);
+    }
+
     void push_fn(int line, int col, char const* lit, int len, parse_node_kind node_kind, int num_sub_nodes, int num_args)
     {
         assert(num_sub_nodes <= (int)m_stack.size());
@@ -151,6 +169,11 @@ struct parse_tree_builder
     void push_fn_node(int line, int col, char const* lit, int len, parse_node_kind node_kind, int num_sub_nodes, int num_args)
     {
         m_impl.push_fn(line, col, lit, len, node_kind, num_sub_nodes, num_args);
+    }
+
+    void push_var_node(int line, int col, char const* lit, int len, bool is_arr, int num_sub)
+    {
+        m_impl.push_var(line, col, lit, len, is_arr, num_sub);
     }
 
     parse_tree release()
@@ -213,6 +236,11 @@ class parser_impl : noncopyable
     {
         m_builder.push_fn_node(m_loc.first_line, m_loc.first_column, m_text, m_len, FUNC_DEF, num_sub, num_args);
     }
+    void push_var(bool is_arr, int num_sub)
+    {
+        m_builder.push_var_node(m_loc.first_line, m_loc.first_column, m_text, m_len, is_arr, num_sub);
+    }
+
     template <int N>
     void push_token(char const (&lit)[N], parse_node_kind kind, int num_sub = 0)
     {
@@ -354,6 +382,26 @@ class parser_impl : noncopyable
         return rv;
     }
 
+    bool read_array_init()
+    {
+        check_char('{');
+        next_token();
+        int num_el = 0;
+        while (has_token()) {
+            if (!read_expr()) {
+                return false;
+            }
+            ++num_el;
+            if (token() != TOK_COMMA) {
+                break;
+            }
+        }
+        check_char('}');
+        push_token(ARRAY_INIT, num_el);
+        next_token();
+        return true;
+    }
+
     bool read_formal()
     {
         assert(token() == KWD_VAR);
@@ -391,10 +439,26 @@ class parser_impl : noncopyable
     bool read_expr()
     {
         check_eos("Expected an expression.");
+        if (token() == IDENT) {
+            push_token(IDENT);
+            next_token();
+            if (token() == TOK_SQ_L) {
+                next_token();
+                if (!read_expr()) {
+                    return false;
+                }
+                push_token(EXPR_INDEX, 2);
+                check_char(']');
+                next_token();
+                return true;
+            } else {
+                return true;
+            }
+        }
         if (read_unary()) {
             return true;
         }
-
+        m_err = "Expected an expression.";
         return false;
     }
 
@@ -467,12 +531,29 @@ class parser_impl : noncopyable
         if (!read_identifier()) {
             return false;
         }
+
+        bool was_array = false;
+        if (token() == TOK_SQ_L) {
+            next_token();
+            check_char(']');
+            next_token();
+            was_array = true;
+        }
+
         check_char('=');
         next_token();
-        if (!read_expr()) {
-            return false;
+
+        if (was_array) {
+            if (!read_array_init()) {
+                return false;
+            }
+        } else {
+            if (!read_expr()) {
+                return false;
+            }
         }
-        push_token(VAR_DEF, 2);
+
+        push_var(was_array, 2);
         check_char(';');
         next_token();
         return true;

@@ -77,7 +77,9 @@ enum parse_node_kind
     TREE_ROOT = 306,
     VAR_DEF = 307,
     FUNC_DEF = 308,
-    FUNC_FORMAL = 309
+    FUNC_FORMAL = 309,
+    ARRAY_INIT = 310,
+    EXPR_INDEX = 311
 };
 
 struct parse_node : noncopyable
@@ -98,6 +100,30 @@ struct parse_node : noncopyable
     {
         auto arr = reinterpret_cast<parse_node**>(this+1);
         return parse_node_range(arr, static_cast<size_t>(num_nodes));
+    }
+
+    bool is_array() const
+    {
+        assert(kind == qsh::VAR_DEF);
+        assert(num_nodes == 3);
+        auto arr = sub()[0];
+        return reinterpret_cast<ptrdiff_t>(arr) ? true : false;
+    }
+
+    char const* var_name() const
+    {
+        assert(kind == qsh::VAR_DEF);
+        assert(num_nodes == 3);
+        auto id = sub()[1];
+        assert(id->kind == qsh::IDENT);
+        return id->text;
+    }
+
+    parse_node const* var_init() const
+    {
+        assert(kind == qsh::VAR_DEF);
+        assert(num_nodes == 3);
+        return sub()[2];
     }
 
     char const* fcn_name() const
