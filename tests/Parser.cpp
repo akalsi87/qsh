@@ -234,8 +234,8 @@ PARSER_TEST_TREE_POS(
     TEST_TRUE(root->num_stmts() == 3);
     TEST_TRUE(root->stmts().size() == 3);
     TEST_TRUE(root->stmts()[0]->kind == qsh::VAR_DEF);
-    TEST_TRUE(!strcmp(root->stmts()[0]->stmts()[0]->text, "z"));
-    TEST_TRUE(!strcmp(root->stmts()[0]->stmts()[1]->text, "1"));
+    TEST_TRUE(!strcmp(root->stmts()[0]->sub()[0]->text, "z"));
+    TEST_TRUE(!strcmp(root->stmts()[0]->sub()[1]->text, "1"));
     TEST_TRUE(root->stmts()[1]->kind == qsh::KWD_RETURN);
     TEST_TRUE(root->stmts()[1]->num_nodes == 0);
     TEST_TRUE(root->stmts()[2]->kind == qsh::KWD_RETURN);
