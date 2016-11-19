@@ -24,8 +24,6 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 
 %{
 #include <stdio.h>
-#include "parse_tree_c.h"
-#include "parser.h"
 
 #define YY_USER_ACTION                  \
     {                                   \
@@ -108,22 +106,3 @@ void consume_comment(yyscan_t, YYLTYPE* l);
 .                               { /* ignore bad chars */}
 
 %%
-
-static
-void consume_comment(yyscan_t scanner, YYLTYPE* l)
-{
-    int c;
-    while ((c = yyinput(scanner)) != 0) {
-        if (c == '*') {
-            while ((c = yyinput(scanner)) == '*') { }
-            if (c == '/') {
-                return;
-            }
-            if (c == 0) {
-                break;
-            }
-        }
-    }
-    yyerror(l, scanner, "Line comment with regular comment "
-                        "not terminated (//* comment...)");
-}

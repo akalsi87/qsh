@@ -130,19 +130,6 @@ class parse_tree
     friend class parse_tree_builder_impl;
 };
 
-class parse_tree_builder : noncopyable
-{
-  public:
-    parse_tree_builder();
-    ~parse_tree_builder();
-    void push(parse_node_kind kind, int num_sub_nodes, char const* txt);
-    parse_tree release();
-    void push_node(int line, int col, char const* txt, int len, parse_node_kind kind, int num_sub_nodes);
-  private:
-    static const size_t IMPL_SIZE = 48;
-    stack_pimpl<parse_tree_builder_impl, IMPL_SIZE> m_impl;
-};
-
 } // namespace qsh
 
 #endif/*_qsh_parser_parse_tree_hpp_*/

@@ -18,7 +18,7 @@
 int yylex(YYSTYPE * yyval_param, YYLTYPE * yylloc_param, void * yyscanner);
 int yyerror(YYLTYPE* yylloc_param, void *scanner, char const* s);
 
-#define PUSH_NODE(k, n) 
+#define PUSH_NODE(k, n)
 
 }
 
@@ -29,7 +29,7 @@ int yyerror(YYLTYPE* yylloc_param, void *scanner, char const* s);
 %right TOK_ASSIGN
 %left TOK_PAREN_L TOK_PAREN_R TOK_SQ_L TOK_SQ_R TOK_AND TOK_OR TOK_NOT TOK_FLIP TOK_MINUS TOK_PLUS TOK_MUL TOK_DIV TOK_MOD TOK_LT TOK_GT TOK_XOR TOK_TERNARY
 
- //%token EXPR EXPR_INDX EXPR_CALL VAR_DECL
+ //%token EXPR EXPR_INDX EXPR_CALL VAR_DEF
 
 %start translation_unit
 %%
@@ -145,7 +145,7 @@ expression
     ;
 
 var_definition
-    : KWD_VAR init_declarator TOK_SEMI { PUSH_NODE(VAR_DECL, 3); }
+    : KWD_VAR init_declarator TOK_SEMI { PUSH_NODE(VAR_DEF, 3); }
     ;
 
 init_declarator

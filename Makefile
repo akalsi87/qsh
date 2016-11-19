@@ -55,9 +55,10 @@ TEST_DIRS := tests
 
 PARSER_DIR := src/libqsh/parser
 LEX_GRAMMAR := tokenizer
-PARSE_GRAMMAR := parser
+# PARSE_GRAMMAR := parser
 
-GRAMMAR_FILE_NAMES := $(addsuffix .gen,$(LEX_GRAMMAR)) $(addsuffix .gen,$(PARSE_GRAMMAR))
+# GRAMMAR_FILE_NAMES := $(addsuffix .gen,$(LEX_GRAMMAR)) $(addsuffix .gen,$(PARSE_GRAMMAR))
+GRAMMAR_FILE_NAMES := $(addsuffix .gen,$(LEX_GRAMMAR))
 GRAMMAR_FILES := $(addprefix $(PARSER_DIR)/,$(GRAMMAR_FILE_NAMES))
 
 C_SRC_FILES := $(foreach dir,$(SRC_DIRS),$(addprefix $(OBJ_DIR)/,$(wildcard $(dir)/*.c)))
@@ -95,14 +96,14 @@ all: $(QSH_LIB)
 -include $(C_DEP_FILES)
 -include $(CXX_DEP_FILES)
 
-$(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
-	$(BISON) -d -o $(subst .gen,.c,$@) $<
-	$(MV) $(subst .gen,.c,$@) $@
+# $(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
+# 	$(BISON) -d -o $(subst .gen,.c,$@) $<
+# 	$(MV) $(subst .gen,.c,$@) $@
 
 $(PARSER_DIR)/$(LEX_GRAMMAR).gen: $(PARSER_DIR)/$(LEX_GRAMMAR).l
 	$(FLEX) --outfile=$@ $<
 
-grammar: $(GRAMMAR_FILES) $(PARSER_DIR)/$(PARSE_GRAMMAR).l $(PARSER_DIR)/$(LEX_GRAMMAR).l
+grammar: $(GRAMMAR_FILES)
 
 $(OBJ_DIR)/%.o: %.c
 	@$(MKDIR) -p $(shell dirname $@)

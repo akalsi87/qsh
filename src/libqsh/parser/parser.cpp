@@ -15,7 +15,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 namespace qsh {
 
-void push_node(void* ctxt, int line, int col, char const* lit, int len, int node_kind, int num_sub_nodes);
+void set_error(void* p, void* l, char const* msg);
 
 namespace {
 
@@ -26,14 +26,47 @@ namespace {
 typedef parse_node_kind yytokentype;
 #endif // YYTOKENTYPE
 
-#include "parse_tree_c.h"
-#include "parser.h"
-#include "parser.gen"
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef int YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
+
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
 #include "tokenizer.gen"
 
-void qsh_push_node(qsh_parse_context ctxt, int line, int col, char const* lit, int len, int node_kind, int num_sub_nodes)
+static
+void consume_comment(yyscan_t scanner, YYLTYPE* l)
 {
-    push_node(ctxt, line, col, lit, len, node_kind, num_sub_nodes);
+    int c;
+    while ((c = yyinput(scanner)) != 0) {
+        if (c == '*') {
+            while ((c = yyinput(scanner)) == '*') { }
+            if (c == '/') {
+                return;
+            }
+            if (c == 0) {
+                break;
+            }
+        }
+    }
+    set_error(yyget_extra(scanner), l,
+        "Line comment with regular comment "
+        "not terminated (//* comment...)");
 }
 
 } // namespace
@@ -86,61 +119,18 @@ class parse_tree_builder_impl
     }
 };
 
-parse_tree_builder::parse_tree_builder() : m_impl()
+struct parse_tree_builder
 {
-    m_impl.reset();
-}
+    parse_tree_builder_impl m_impl;
 
-parse_tree_builder::~parse_tree_builder()
-{
-}
-
-void parse_tree_builder::push_node(int line, int col, char const* lit, int len, parse_node_kind kind, int num_sub_nodes)
-{
-    m_impl->push(line, col, lit, len, kind, num_sub_nodes);
-}
-
-parse_tree parse_tree_builder::release()
-{
-    return m_impl->release();
-}
-
-void push_node(void* ctxt, int line, int col, char const* lit, int len, parse_node_kind kind, int num_sub_nodes)
-{
-    auto builder = reinterpret_cast<parse_tree_builder*>(ctxt);
-    builder->push_node(line, col, lit, len, kind, num_sub_nodes);
-}
-
-struct parser_impl_flex_bison
-{
-    yyscan_t scanner;
-    mutable YY_BUFFER_STATE buffstate;
-    parse_tree_builder builder;
-
-    parser_impl_flex_bison() : scanner(), buffstate(), builder()
+    void push_node(int line, int col, char const* lit, int len, parse_node_kind kind, int num_sub_nodes)
     {
-        auto fail = yylex_init(&scanner);
-        assert(!fail);
-        yyset_debug(YYDEBUG, scanner);
-        yyset_extra(&builder, scanner);
+        m_impl.push(line, col, lit, len, kind, num_sub_nodes);
     }
 
-    bool parse_string(const char* str, ptrdiff_t len = -1) const
+    parse_tree release()
     {
-        if (len == -1) {
-            len = strlen(str);
-        }
-        buffstate = yy_scan_bytes(str, len, scanner);
-        yyset_lineno(1, scanner);
-        yyset_column(1, scanner);
-        bool fail = yyparse(scanner);
-        yy_delete_buffer(buffstate, scanner);
-        return !fail;
-    }
-
-    ~parser_impl_flex_bison()
-    {
-        yylex_destroy(scanner);
+        return m_impl.release();
     }
 };
 
@@ -181,6 +171,12 @@ class parser_impl : noncopyable
     parse_tree release_tree()
     {
         return m_builder.release();
+    }
+
+    void set_err(YYLTYPE* l, char const* msg)
+    {
+        m_loc = *l;
+        m_err = msg;
     }
 
   private:
@@ -392,6 +388,11 @@ class parser_impl : noncopyable
         return succ;
     }
 };
+
+void set_error(void* p, void* l, char const* msg)
+{
+    ((parser_impl*)p)->set_err((YYLTYPE*)l, msg);
+}
 
 parser::parser() : m_impl()
 {
