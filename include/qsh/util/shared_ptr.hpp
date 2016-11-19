@@ -150,6 +150,12 @@ class shared_ptr
     }
 };
 
+template <class T, class... Ts>
+shared_ptr<T> make_shared(Ts... args)
+{
+    return shared_ptr<T>::create(std::forward<Ts>(args)...);
+}
+
 } // namespace qsh
 
 #endif/*_qsh_util_shared_ptr_hpp_*/

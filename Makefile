@@ -22,7 +22,7 @@ LD   ?= ld
 
 PREFIX ?= install
 
-DEBUG_OPTS := -O0 -g
+DEBUG_OPTS := -O0 -g -fno-inline
 RELEASE_OPTS := -O2
 
 WARN += -Wall -Wextra -Werror
@@ -100,7 +100,7 @@ $(PARSER_DIR)/$(PARSE_GRAMMAR).gen: $(PARSER_DIR)/$(PARSE_GRAMMAR).l
 $(PARSER_DIR)/$(LEX_GRAMMAR).gen: $(PARSER_DIR)/$(LEX_GRAMMAR).l
 	$(FLEX) --outfile=$@ $<
 
-grammar: $(GRAMMAR_FILES)
+grammar: $(GRAMMAR_FILES) $(PARSER_DIR)/$(PARSE_GRAMMAR).l $(PARSER_DIR)/$(LEX_GRAMMAR).l
 
 $(OBJ_DIR)/%.o: %.c
 	@$(MKDIR) -p $(shell dirname $@)
@@ -149,12 +149,12 @@ tests/%.test: tests/%.cpp $(PREFIX)/lib/$(LIB_NAME) $(DBG_LIB)
 
 tests/%.log: tests/%.test
 	@$(PRINTF) 'Running test \033[1m$<\033[0m...\n'
-	($< 2>&1) | tee $@
+	(($< 2>&1) > $@) || echo FAIL!
 
 check: $(TEST_LOGS) $(TESTS)
 
 run_tests:
-	ls tests/*.test | sed 's/\.test/\.test \&\& /' | xargs -i{}  bash -c "{} true"
+	ls tests/*.test | sed 's/\.test/\.test \&\& printf 'OK!\n' \&\& /' | xargs -i{}  bash -c "{} true"
 
 clean:
 	$(RM) -r $(BUILD_DIR)

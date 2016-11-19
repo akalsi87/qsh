@@ -92,7 +92,7 @@ class stack_pimpl : noncopyable
     }
   private:
     using storage = stack_storage<sz>;
-    storage m_data;
+    mutable storage m_data;
     bool m_init;
 };
 

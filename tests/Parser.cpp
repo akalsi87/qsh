@@ -16,7 +16,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #include <fstream>
 
 static const int turnOffStdoutBuff = []() { setvbuf(stdout, NULL, _IONBF, 0); return 1; }();
-static const qsh::parser Parser;
+static qsh::parser parser;
 
 void print_file(const char* str)
 {
@@ -44,9 +44,12 @@ void print_file(const char* str)
 bool test_string(const char* str)
 {
     printf("Errors (string)\n--------\n");
-    auto ok = Parser.parse_string(str);
+    auto tree = parser.parse_string(str);
+    if (!tree.is_valid()) {
+        printf("%s\n", parser.err_msg());
+    }
     printf("--------\n");
-    return ok;
+    return tree.is_valid();
 }
 
 const char* get_env(const char* e)
@@ -95,9 +98,12 @@ bool test_file(const char* id, const char* str)
     file << str;
     file.close();
     printf("Errors (file)\n--------\n");
-    bool ok = Parser.parse_file(filename);
+    auto tree = parser.parse_file(filename);
+    if (!tree.is_valid()) {
+        printf("%s\n", parser.err_msg());
+    }
     printf("--------\n");
-    return ok;
+    return tree.is_valid();
 }
 
 #define __PARSER_TEST(id, str, exp)                 \
@@ -109,15 +115,44 @@ bool test_file(const char* id, const char* str)
     TEST_TRUE(id##_file_ok);                        \
   }
 
+#define __PARSER_TEST_TREE(id, str, exp)            \
+  CPP_TEST(id) {                                    \
+    print_file(str);                                \
+    auto id##_strg_ok = test_string(str) == exp;    \
+    auto id##_file_ok = test_file(#id, str) == exp; \
+    TEST_TRUE(id##_strg_ok);                        \
+    TEST_TRUE(id##_file_ok);                        \
+  }                                                 \
+  struct id##_tree_data                             \
+  {                                                 \
+    static char const* const val;                   \
+  };                                                \
+  char const* const id##_tree_data:: val = str;    \
+  CPP_TEST(id##_tree)
+
 #define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)
 #define PARSER_TEST_NEG(id, str) __PARSER_TEST(id, str, false)
 
-PARSER_TEST_POS(
-    varDecl,
-    "var x = 1;\n"
-)
+#define PARSER_TEST_TREE_POS(id, str) __PARSER_TEST_TREE(id, str, true)
+#define PARSER_TEST_TREE_NEG(id, str) __PARSER_TEST_TREE(id, str, false)
 
-PARSER_TEST_POS(
+PARSER_TEST_TREE_POS(
+    varDecl,
+    "var x = 1;\n")
+{
+    qsh::parser p;
+    auto t = p.parse_string(varDecl_tree_data::val);
+    auto root = t.root()->sub()[0];
+    TEST_TRUE(root->kind == qsh::VAR_DEF);
+    TEST_TRUE(root->num_nodes == 2);
+    TEST_TRUE(root->sub()[0]->kind == qsh::IDENT);
+    TEST_TRUE(root->sub()[0]->num_nodes == 0);
+    TEST_TRUE(!strcmp(root->sub()[0]->text, "x"));
+    TEST_TRUE(root->sub()[1]->kind == qsh::LIT_INT_DEC);
+    TEST_TRUE(root->sub()[1]->num_nodes == 0);
+}
+
+PARSER_TEST_TREE_POS(
     singleLineCommentsOnly,
     "// foo\n"
     "\n"
@@ -125,6 +160,12 @@ PARSER_TEST_POS(
     "// g\n"
     "//"
 )
+{
+    qsh::parser p;
+    auto t = p.parse_string(singleLineCommentsOnly_tree_data::val);
+    auto root = t.root();
+    TEST_TRUE(root->kind == qsh::TREE_ROOT);
+}
 
 PARSER_TEST_NEG(
     rightEndCommentLine9,
@@ -147,11 +188,6 @@ PARSER_TEST_NEG(
 PARSER_TEST_NEG(
     danglingVarIncomplete,
     "var x"
-)
-
-PARSER_TEST_POS(
-    varInit,
-    "var x = 1;"
 )
 
 PARSER_TEST_NEG(

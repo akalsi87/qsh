@@ -11,6 +11,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 #define _qsh_parser_parser_h_
 
 #include "qsh/config.h"
+#include "qsh/parser/parse_tree.hpp"
 #include "qsh/util/stack_pimpl.hpp"
 
 namespace qsh {
@@ -22,10 +23,11 @@ class QSH_API parser : noncopyable
   public:
     parser();
     ~parser();
-    bool parse_file(char const* filename) const;
-    bool parse_string(char const* str) const;
+    parse_tree parse_file(char const* filename);
+    parse_tree parse_string(char const* str, ptrdiff_t len = -1);
+    char const* err_msg() const;
   private:
-    static const int IMPL_SIZE = 2*sizeof(size_t) + 64;
+    static const int IMPL_SIZE = 2*sizeof(size_t) + 120;
     stack_pimpl<parser_impl, IMPL_SIZE> m_impl;
 };
 

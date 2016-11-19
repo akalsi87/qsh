@@ -35,7 +35,7 @@ ES (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
         yylloc->last_line = yylineno;   \
     }
 
-#define PUSH_NODE(k) qsh_push_node(yyextra, yylloc->first_line, yylloc->first_column, yytext, yyleng, k, 0); *yylval = { yylloc, yytext, yyleng, yyextra }
+#define PUSH_NODE(k) return k
 
 static
 void consume_comment(yyscan_t, YYLTYPE* l);

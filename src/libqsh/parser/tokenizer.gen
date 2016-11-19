@@ -590,7 +590,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[55] =
         yylloc->last_line = yylineno;   \
     }
 
-#define PUSH_NODE(k) qsh_push_node(yyextra, yylloc->first_line, yylloc->first_column, yytext, yyleng, k, 0); *yylval = { yylloc, yytext, yyleng, yyextra }
+#define PUSH_NODE(k) return k
 
 static
 void consume_comment(yyscan_t, YYLTYPE* l);

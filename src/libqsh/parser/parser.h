@@ -92,11 +92,7 @@ extern int yydebug;
     TOK_LT = 302,
     TOK_GT = 303,
     TOK_XOR = 304,
-    TOK_TERNARY = 305,
-    EXPR = 306,
-    EXPR_INDX = 307,
-    EXPR_CALL = 308,
-    VAR_DECL = 309
+    TOK_TERNARY = 305
   };
 #endif
 
