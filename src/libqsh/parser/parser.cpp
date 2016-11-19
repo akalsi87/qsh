@@ -118,7 +118,7 @@ class parse_tree_builder_impl
         if (num_sub_nodes) {
             auto sn = n->sub();
             sn[0] = reinterpret_cast<parse_node*>(num_args);
-            for (int i = num_sub_nodes-1; i >= 1; --i) {
+            for (int i = num_sub_nodes; i >= 1; --i) {
                 sn[i] = m_stack.back(); m_stack.pop_back();
             }
         }
@@ -329,6 +329,7 @@ class parser_impl : noncopyable
             case LIT_INT_HEX:
             case LIT_INT_DEC:
             case LIT_FLOAT:
+            case IDENT:
                 rv = true;
                 push_token((parse_node_kind)token());
                 next_token();
@@ -361,6 +362,32 @@ class parser_impl : noncopyable
         return read_identifier();
     }
 
+    bool read_return_stmt()
+    {
+        assert(token() == KWD_RETURN);
+        next_token();
+        bool rv = false;
+        if (has_token()) {
+            if (token() == TOK_SEMI) {
+                push_token(KWD_RETURN);
+                next_token();
+                rv = true;
+            } else if (read_expr()) {
+                if (token() == TOK_SEMI) {
+                    rv = true;
+                    push_token(KWD_RETURN, 1);
+                    next_token();
+                } else {
+                    m_err = "Expected return statement to terminate with ';'";
+                }
+            }
+        }
+        if (!rv && m_err.empty()) {
+            m_err = "Expected a valid return statement:  return; or return <expr>;";
+        }
+        return rv;
+    }
+
     bool read_expr()
     {
         check_eos("Expected an expression.");
@@ -373,7 +400,14 @@ class parser_impl : noncopyable
 
     bool read_statement()
     {
-        return read_expr();
+        switch (token()) {
+        case KWD_VAR:
+            return read_var_def();
+        case KWD_RETURN:
+            return read_return_stmt();
+        default:
+            return read_expr();
+        }
     }
 
     // id '=' expr
@@ -391,7 +425,7 @@ class parser_impl : noncopyable
         return true;
     }
 
-    bool parse_func_def()
+    bool read_func_def()
     {
         assert(token() == KWD_DEF);
         next_token();
@@ -408,6 +442,8 @@ class parser_impl : noncopyable
             ++nargs;
             if (token() != TOK_COMMA) {
                 break;
+            } else {
+                next_token();
             }
         }
         check_char(')'); next_token();
@@ -419,12 +455,12 @@ class parser_impl : noncopyable
             }
             ++nstmts;
         }
-        push_func(nstmts+nargs, nargs);
+        push_func(nstmts+nargs+1/*funcname*/, nargs);
         check_char('}'); next_token();
-        return false;
+        return true;
     }
 
-    bool parse_var_def()
+    bool read_var_def()
     {
         assert(token() == KWD_VAR);
         next_token();
@@ -442,13 +478,13 @@ class parser_impl : noncopyable
         return true;
     }
 
-    bool parse_external_decl()
+    bool read_external_decl()
     {
         switch (token()) {
         case KWD_DEF:
-            return parse_func_def();
+            return read_func_def();
         case KWD_VAR:
-            return parse_var_def();
+            return read_var_def();
         default:
             m_err = "Expected variable or function definition not found.";
             return false;
@@ -485,7 +521,7 @@ class parser_impl : noncopyable
         next_token();
         bool succ = true;
         while (has_token() && succ) {
-            succ = parse_external_decl();
+            succ = read_external_decl();
         }
         yy_delete_buffer(m_buff, m_scan);
         return succ;

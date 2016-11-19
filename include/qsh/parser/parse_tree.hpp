@@ -99,6 +99,43 @@ struct parse_node : noncopyable
         auto arr = reinterpret_cast<parse_node**>(this+1);
         return parse_node_range(arr, static_cast<size_t>(num_nodes));
     }
+
+    char const* fcn_name() const
+    {
+        assert(kind == qsh::FUNC_DEF);
+        auto id = sub()[1];
+        assert(id->kind == qsh::IDENT);
+        return id->text;
+    }
+
+    ptrdiff_t num_formals() const
+    {
+        assert(kind == qsh::FUNC_DEF);
+        return reinterpret_cast<ptrdiff_t>(sub()[0]);
+    }
+
+    ptrdiff_t num_stmts() const
+    {
+        assert(kind == qsh::FUNC_DEF);
+        /* -1 for fcn name, -1 for num_formals */
+        return num_nodes - 2 - num_formals();
+    }
+
+    const_parse_node_range formals() const
+    {
+        assert(kind == qsh::FUNC_DEF);
+        auto s = sub();
+        return const_parse_node_range(&s[0] + 2,
+                                      reinterpret_cast<ptrdiff_t>(s[0]));
+    }
+
+    const_parse_node_range statements() const
+    {
+        assert(kind == qsh::FUNC_DEF);
+        auto s = sub();
+        return const_parse_node_range(&s[0] + 2 + num_formals(),
+                                      reinterpret_cast<ptrdiff_t>(num_stmts()));
+    }
 };
 
 class parse_tree_builder_impl;

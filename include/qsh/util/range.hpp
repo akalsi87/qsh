@@ -12,6 +12,7 @@ Copyright (c) 2016 Aaditya Kalsi - All Rights Reserved.
 
 #include "qsh/config.h"
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
@@ -39,11 +40,13 @@ class pointer_range
 
     T const& operator[](size_t i) const
     {
+        assert(i < size());
         return m_begin[i];
     }
 
     T& operator[](size_t i)
     {
+        assert(i < size());
         return m_begin[i];
     }
 

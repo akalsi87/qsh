@@ -123,11 +123,11 @@ bool test_file(const char* id, const char* str)
     TEST_TRUE(id##_strg_ok);                        \
     TEST_TRUE(id##_file_ok);                        \
   }                                                 \
-  struct id##_tree_data                             \
+  struct id##Data                             \
   {                                                 \
-    static char const* const val;                   \
+    static char const* const text;                   \
   };                                                \
-  char const* const id##_tree_data:: val = str;    \
+  char const* const id##Data:: text = str;    \
   CPP_TEST(id##_tree)
 
 #define PARSER_TEST_POS(id, str) __PARSER_TEST(id, str, true)
@@ -141,7 +141,7 @@ PARSER_TEST_TREE_POS(
     "var x = 1;\n")
 {
     qsh::parser p;
-    auto t = p.parse_string(varDecl_tree_data::val);
+    auto t = p.parse_string(varDeclData::text);
     auto root = t.root()->sub()[0];
     TEST_TRUE(root->kind == qsh::VAR_DEF);
     TEST_TRUE(root->num_nodes == 2);
@@ -162,9 +162,86 @@ PARSER_TEST_TREE_POS(
 )
 {
     qsh::parser p;
-    auto t = p.parse_string(singleLineCommentsOnly_tree_data::val);
+    auto t = p.parse_string(singleLineCommentsOnlyData::text);
     auto root = t.root();
     TEST_TRUE(root->kind == qsh::TREE_ROOT);
+}
+
+PARSER_TEST_TREE_POS(
+    emptyFcnDef,
+    "// foo\n"
+    "def foo(var x, var y) {\n"
+    "}\n"
+)
+{
+    qsh::parser p;
+    auto t = p.parse_string(emptyFcnDefData::text);
+    auto root = t.root()->sub()[0];
+    TEST_TRUE(root->kind == qsh::FUNC_DEF);
+    TEST_TRUE(root->num_nodes == 4);
+    TEST_TRUE(root->num_formals() == 2);
+    TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+    TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
+    TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
+    TEST_TRUE(root->num_stmts() == 0);
+    TEST_TRUE(root->statements().size() == 0);
+}
+
+
+PARSER_TEST_TREE_POS(
+    singleStmtFcnDef,
+    "// foo\n"
+    "def foo(var x, var y) {\n"
+    "  var z = 1;\n"
+    "}\n"
+)
+{
+    qsh::parser p;
+    auto t = p.parse_string(singleStmtFcnDefData::text);
+    auto root = t.root()->sub()[0];
+    TEST_TRUE(root->kind == qsh::FUNC_DEF);
+    TEST_TRUE(root->num_nodes == 5);
+    TEST_TRUE(root->num_formals() == 2);
+    TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+    TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
+    TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
+    TEST_TRUE(root->num_stmts() == 1);
+    TEST_TRUE(root->statements().size() == 1);
+    TEST_TRUE(root->statements()[0]->kind == qsh::VAR_DEF);
+    TEST_TRUE(!strcmp(root->statements()[0]->sub()[0]->text, "z"));
+    TEST_TRUE(!strcmp(root->statements()[0]->sub()[1]->text, "1"));
+}
+
+PARSER_TEST_TREE_POS(
+    returnStmtFcnDef,
+    "// foo\n"
+    "def foo(var x, var y) {\n"
+    "  var z = 1;\n"
+    "  return;\n"
+    "  return z;\n"
+    "}\n"
+)
+{
+    qsh::parser p;
+    auto t = p.parse_string(returnStmtFcnDefData::text);
+    auto root = t.root()->sub()[0];
+    TEST_TRUE(root->kind == qsh::FUNC_DEF);
+    TEST_TRUE(root->num_nodes == 7);
+    TEST_TRUE(root->num_formals() == 2);
+    TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+    TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
+    TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
+    TEST_TRUE(root->num_stmts() == 3);
+    TEST_TRUE(root->statements().size() == 3);
+    TEST_TRUE(root->statements()[0]->kind == qsh::VAR_DEF);
+    TEST_TRUE(!strcmp(root->statements()[0]->sub()[0]->text, "z"));
+    TEST_TRUE(!strcmp(root->statements()[0]->sub()[1]->text, "1"));
+    TEST_TRUE(root->statements()[1]->kind == qsh::KWD_RETURN);
+    TEST_TRUE(root->statements()[1]->num_nodes == 0);
+    TEST_TRUE(root->statements()[2]->kind == qsh::KWD_RETURN);
+    TEST_TRUE(root->statements()[2]->num_nodes == 1);
+    TEST_TRUE(root->statements()[2]->sub()[0]->kind == qsh::IDENT);
+    TEST_TRUE(!strcmp(root->statements()[2]->sub()[0]->text, "z"));
 }
 
 PARSER_TEST_NEG(
