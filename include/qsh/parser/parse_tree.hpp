@@ -129,7 +129,7 @@ struct parse_node : noncopyable
                                       reinterpret_cast<ptrdiff_t>(s[0]));
     }
 
-    const_parse_node_range statements() const
+    const_parse_node_range stmts() const
     {
         assert(kind == qsh::FUNC_DEF);
         auto s = sub();

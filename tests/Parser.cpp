@@ -184,7 +184,7 @@ PARSER_TEST_TREE_POS(
     TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
     TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
     TEST_TRUE(root->num_stmts() == 0);
-    TEST_TRUE(root->statements().size() == 0);
+    TEST_TRUE(root->stmts().size() == 0);
 }
 
 
@@ -206,10 +206,10 @@ PARSER_TEST_TREE_POS(
     TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
     TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
     TEST_TRUE(root->num_stmts() == 1);
-    TEST_TRUE(root->statements().size() == 1);
-    TEST_TRUE(root->statements()[0]->kind == qsh::VAR_DEF);
-    TEST_TRUE(!strcmp(root->statements()[0]->sub()[0]->text, "z"));
-    TEST_TRUE(!strcmp(root->statements()[0]->sub()[1]->text, "1"));
+    TEST_TRUE(root->stmts().size() == 1);
+    TEST_TRUE(root->stmts()[0]->kind == qsh::VAR_DEF);
+    TEST_TRUE(!strcmp(root->stmts()[0]->sub()[0]->text, "z"));
+    TEST_TRUE(!strcmp(root->stmts()[0]->sub()[1]->text, "1"));
 }
 
 PARSER_TEST_TREE_POS(
@@ -232,16 +232,16 @@ PARSER_TEST_TREE_POS(
     TEST_TRUE(!strcmp(root->formals()[0]->text, "x"));
     TEST_TRUE(!strcmp(root->formals()[1]->text, "y"));
     TEST_TRUE(root->num_stmts() == 3);
-    TEST_TRUE(root->statements().size() == 3);
-    TEST_TRUE(root->statements()[0]->kind == qsh::VAR_DEF);
-    TEST_TRUE(!strcmp(root->statements()[0]->sub()[0]->text, "z"));
-    TEST_TRUE(!strcmp(root->statements()[0]->sub()[1]->text, "1"));
-    TEST_TRUE(root->statements()[1]->kind == qsh::KWD_RETURN);
-    TEST_TRUE(root->statements()[1]->num_nodes == 0);
-    TEST_TRUE(root->statements()[2]->kind == qsh::KWD_RETURN);
-    TEST_TRUE(root->statements()[2]->num_nodes == 1);
-    TEST_TRUE(root->statements()[2]->sub()[0]->kind == qsh::IDENT);
-    TEST_TRUE(!strcmp(root->statements()[2]->sub()[0]->text, "z"));
+    TEST_TRUE(root->stmts().size() == 3);
+    TEST_TRUE(root->stmts()[0]->kind == qsh::VAR_DEF);
+    TEST_TRUE(!strcmp(root->stmts()[0]->stmts()[0]->text, "z"));
+    TEST_TRUE(!strcmp(root->stmts()[0]->stmts()[1]->text, "1"));
+    TEST_TRUE(root->stmts()[1]->kind == qsh::KWD_RETURN);
+    TEST_TRUE(root->stmts()[1]->num_nodes == 0);
+    TEST_TRUE(root->stmts()[2]->kind == qsh::KWD_RETURN);
+    TEST_TRUE(root->stmts()[2]->num_nodes == 1);
+    TEST_TRUE(root->stmts()[2]->sub()[0]->kind == qsh::IDENT);
+    TEST_TRUE(!strcmp(root->stmts()[2]->sub()[0]->text, "z"));
 }
 
 PARSER_TEST_NEG(
