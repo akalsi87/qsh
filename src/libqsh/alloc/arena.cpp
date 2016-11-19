@@ -172,8 +172,8 @@ arena::~arena()
 void* arena::allocate(size_t sz, arena::destroy_fn fn)
 {
     sz = (sz + 7) & ~size_t(7); // align upto 8
-    size_t szneeded = sz + sizeof(header) + (fn ? sizeof(void*) : 0);
-    return impl_->allocate(szneeded, (void*)fn);
+    size_t size_needed = sz + sizeof(header) + (fn ? sizeof(void*) : 0);
+    return impl_->allocate(size_needed, (void*)fn);
 }
 
 } // namespace qsh

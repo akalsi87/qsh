@@ -105,6 +105,26 @@ class parse_tree_builder_impl
         m_stack.push_back(n);
     }
 
+    void push_fn(int line, int col, char const* lit, int len, parse_node_kind node_kind, int num_sub_nodes, int num_args)
+    {
+        assert(num_sub_nodes <= (int)m_stack.size());
+        auto n = reinterpret_cast<parse_node*>(m_arena->allocate(sizeof(parse_node) + sizeof(size_t) + num_sub_nodes*sizeof(parse_node*)));
+        n->kind = (parse_node_kind)node_kind;
+        n->num_nodes = num_sub_nodes+1;
+        n->type = nullptr;
+        n->line = line;
+        n->col = col;
+        n->text = m_text->create_string(lit, len);
+        if (num_sub_nodes) {
+            auto sn = n->sub();
+            sn[0] = reinterpret_cast<parse_node*>(num_args);
+            for (int i = num_sub_nodes-1; i >= 1; --i) {
+                sn[i] = m_stack.back(); m_stack.pop_back();
+            }
+        }
+        m_stack.push_back(n);
+    }
+
     parse_tree release()
     {
         parse_tree p;
@@ -126,6 +146,11 @@ struct parse_tree_builder
     void push_node(int line, int col, char const* lit, int len, parse_node_kind kind, int num_sub_nodes)
     {
         m_impl.push(line, col, lit, len, kind, num_sub_nodes);
+    }
+
+    void push_fn_node(int line, int col, char const* lit, int len, parse_node_kind node_kind, int num_sub_nodes, int num_args)
+    {
+        m_impl.push_fn(line, col, lit, len, node_kind, num_sub_nodes, num_args);
     }
 
     parse_tree release()
@@ -183,6 +208,10 @@ class parser_impl : noncopyable
     void push_token(parse_node_kind kind, int num_sub = 0)
     {
         m_builder.push_node(m_loc.first_line, m_loc.first_column, m_text, m_len, kind, num_sub);
+    }
+    void push_func(int num_sub, int num_args)
+    {
+        m_builder.push_fn_node(m_loc.first_line, m_loc.first_column, m_text, m_len, FUNC_DEF, num_sub, num_args);
     }
     template <int N>
     void push_token(char const (&lit)[N], parse_node_kind kind, int num_sub = 0)
@@ -291,13 +320,60 @@ class parser_impl : noncopyable
         return rv;
     }
 
+    bool read_unary()
+    {
+        bool rv = false;
+        switch (token()) {
+            case LIT_CHAR:
+            case LIT_STRING:
+            case LIT_INT_HEX:
+            case LIT_INT_DEC:
+            case LIT_FLOAT:
+                rv = true;
+                push_token((parse_node_kind)token());
+                next_token();
+                break;
+            case OP_INCR:
+            case OP_DECR:
+            case TOK_PLUS:
+            case TOK_MINUS:
+            case TOK_FLIP:
+            case TOK_NOT:
+                rv = true;
+                push_token((parse_node_kind)token());
+                next_token();
+                if (!read_expr()) {
+                    rv = false;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return rv;
+    }
+
+    bool read_formal()
+    {
+        assert(token() == KWD_VAR);
+        next_token();
+        check_eos("Expected a variable declaration as function parameter.");
+        return read_identifier();
+    }
+
     bool read_expr()
     {
         check_eos("Expected an expression.");
-        if (read_constant()) {
+        if (read_unary()) {
             return true;
         }
+
         return false;
+    }
+
+    bool read_statement()
+    {
+        return read_expr();
     }
 
     // id '=' expr
@@ -317,7 +393,34 @@ class parser_impl : noncopyable
 
     bool parse_func_def()
     {
-        m_err = "Function definition not implemented yet.";
+        assert(token() == KWD_DEF);
+        next_token();
+        if (!read_identifier()) {
+            return false;
+        }
+        check_char('(');
+        next_token();
+        int nargs = 0;
+        while (token() == KWD_VAR) {
+            if (!read_formal()) {
+                return false;
+            }
+            ++nargs;
+            if (token() != TOK_COMMA) {
+                break;
+            }
+        }
+        check_char(')'); next_token();
+        check_char('{'); next_token();
+        int nstmts = 0;
+        while (has_token() && token() != TOK_CURLY_R) {
+            if (!read_statement()) {
+                return false;
+            }
+            ++nstmts;
+        }
+        push_func(nstmts+nargs, nargs);
+        check_char('}'); next_token();
         return false;
     }
 

@@ -74,8 +74,10 @@ enum parse_node_kind
     TOK_XOR = 304,
     TOK_TERNARY = 305
     /* end of auto gen */,
-    VAR_DEF = 306,
-    TREE_ROOT = 307
+    TREE_ROOT = 306,
+    VAR_DEF = 307,
+    FUNC_DEF = 308,
+    FUNC_FORMAL = 309
 };
 
 struct parse_node : noncopyable
