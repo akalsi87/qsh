@@ -10,10 +10,12 @@ ifeq ($(OS),Windows_NT)
 	LD := g++
 	SL := dll
 	LDFLAGS := -Wl,--gc-sections
+	LIB_DIR := bin
 else
 	LD := ld
 	SL := so
 	LDFLAGS := --gc-sections
+	LIB_DIR := lib
 endif
 
 CC   ?= cc
@@ -78,7 +80,7 @@ LIB_NAME:=libqsh.$(SL)
 QSH_LIB := $(BUILD_DIR)/$(LIB_NAME)
 
 ifneq ($(OS),Windows_NT)
-	CP_DLL_TEST := $(CP) $(QSH_LIB).dbg $(PREFIX)/lib/
+	CP_DLL_TEST := $(CP) $(QSH_LIB).dbg $(PREFIX)/$(LIB_DIR)/
 	DBG_LIB := $(QSH_LIB).dbg
 else
 	CP_DLL_TEST := $(CP) $(QSH_LIB)* .
@@ -115,7 +117,7 @@ $(OBJ_DIR)/%.o: %.cpp
 	$(CXX) $(INCL) $(WARN) $(CXXFLAGS) $(OPTS) -c $< -o $@
 
 $(OBJ_DIR)/$(PARSER_DIR)/parser.o: $(GRAMMAR_FILES)
-$(OBJ_DIR)/$(PARSER_DIR)/parser.o: WARN += -Wno-unused-function -Wno-unused-parameter
+$(OBJ_DIR)/$(PARSER_DIR)/parser.o: WARN += -Wno-unused-function -Wno-unused-parameter -Wno-sign-compare
 
 %.pc: %.c
 	$(CC) $(INCL) $(WARN) $(CFLAGS) $(OPTS) -c $< -E | less
@@ -131,21 +133,21 @@ $(QSH_LIB): $(OBJS)
 	$(OBJCOPY) --strip-debug $(QSH_LIB)
 	$(OBJCOPY) --add-gnu-debuglink=$(DBG_LIB) $(QSH_LIB)
 
-$(PREFIX)/lib/$(LIB_NAME): $(QSH_LIB) $(HDRS)
+$(PREFIX)/$(LIB_DIR)/$(LIB_NAME): $(QSH_LIB) $(HDRS)
 	@$(PRINTF) 'Installing @ \033[1m$@\033[0m...\n'
-	$(MKDIR) -p $(PREFIX)/include $(PREFIX)/lib
+	$(MKDIR) -p $(PREFIX)/include $(PREFIX)/$(LIB_DIR)
 	$(CP) -rf include/* $(PREFIX)/include
-	$(CP) -f $(QSH_LIB) $(DBG_LIB) $(PREFIX)/lib
+	$(CP) -f $(QSH_LIB) $(DBG_LIB) $(PREFIX)/$(LIB_DIR)
 
-install: $(PREFIX)/lib/$(LIB_NAME)
+install: $(PREFIX)/$(LIB_DIR)/$(LIB_NAME)
 
 $(DBG_LIB): install
 	$(CP_DLL_TEST)
 
-$(TESTS): WARN += -Wno-unused-parameter
-tests/%.test: tests/%.cpp $(PREFIX)/lib/$(LIB_NAME) $(DBG_LIB)
+$(TESTS): WARN += -Wno-unused-parameter 
+tests/%.test: tests/%.cpp $(PREFIX)/$(LIB_DIR)/$(LIB_NAME) $(DBG_LIB)
 	@$(PRINTF) 'Making test  \033[1m$@\033[0m...\n'
-	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $< -o $@ -Wl,-rpath $(PREFIX)/lib -L $(PREFIX)/lib -lqsh -lstdc++
+	$(CXX) -I$(PREFIX)/include -Itests $(WARN) $(filter-out -DBUILD_QSH,$(CXXFLAGS)) $(DEBUG_OPTS) $< -o $@ -Wl,-rpath $(PREFIX)/$(LIB_DIR) -L $(PREFIX)/$(LIB_DIR) -lqsh -lstdc++
 
 tests/%.log: tests/%.test
 	@$(PRINTF) 'Running test \033[1m$<\033[0m...\n'

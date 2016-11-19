@@ -27,7 +27,7 @@ class QSH_API parser : noncopyable
     parse_tree parse_string(char const* str, ptrdiff_t len = -1);
     char const* err_msg() const;
   private:
-    static const int IMPL_SIZE = 2*sizeof(size_t) + 120;
+    static const int IMPL_SIZE = 256;
     stack_pimpl<parser_impl, IMPL_SIZE> m_impl;
 };
 
