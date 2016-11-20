@@ -71,6 +71,48 @@ void consume_comment(yyscan_t scanner, YYLTYPE* l)
 
 } // namespace
 
+
+struct precedence_t
+{
+    int tok;
+    int prec;
+};
+static const precedence_t PREC[] = {
+        { TOK_DIV, 5 },
+        { TOK_MUL, 5 },
+        { TOK_PLUS, 4 },
+        { TOK_MINUS, 4 },
+        { TOK_ASSIGN, 4 },
+        { OP_AND, 3 },
+        { OP_OR, 3 },
+        { OP_EQ, 2 },
+        { OP_NE, 2 },
+        { TOK_LT, 2 },
+        { TOK_GT, 2 },
+        { OP_GE, 2 },
+        { OP_LE, 2 },
+        { OP_SHIFT_L, 1 },
+        { OP_SHIFT_R, 1 }
+};
+static const int NUM_ENTRIES = sizeof(PREC)/sizeof(PREC[0]);
+
+int is_binary_op(parse_node_kind k)
+{
+    for (int i = 0; i < NUM_ENTRIES; ++i) {
+        if (PREC[i].tok == k) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int precedence(parse_node_kind k)
+{
+    auto idx = is_binary_op(k);
+    assert((idx != -1) && "Didn't find operator in precedence table.");
+    return PREC[idx].prec;
+}
+
 class parse_tree_builder_impl
 {
     shared_ptr<arena> m_arena;
@@ -143,6 +185,35 @@ class parse_tree_builder_impl
         m_stack.push_back(n);
     }
 
+    void push_bin_op(int line, int col, char const* lit, int len, parse_node_kind k)
+    {
+        assert(2 <= (int)m_stack.size());
+        auto n = reinterpret_cast<parse_node*>(m_arena->allocate(sizeof(parse_node) + sizeof(size_t) + 2*sizeof(parse_node*)));
+        n->kind = k;
+        n->num_nodes = 2;
+        n->type = nullptr;
+        n->line = line;
+        n->col = col;
+        n->text = m_text->create_string(lit, len);
+        auto sn = n->sub();
+        sn[0] = sn[1] = 0;
+        m_stack.push_back(n);
+    }
+
+    bool consolidate_bin_ops(size_t start)
+    {
+        assert(size() >= start + 3);
+        assert(is_binary_op(m_stack[start+1]->kind) != -1);
+        auto num_items = size() - start + 1;
+        assert(num_items % 2 == 1);
+        return true;
+    }
+
+    size_t size() const
+    {
+        return m_stack.size();
+    }
+
     parse_tree release()
     {
         parse_tree p;
@@ -174,6 +245,21 @@ struct parse_tree_builder
     void push_var_node(int line, int col, char const* lit, int len, bool is_arr, int num_sub)
     {
         m_impl.push_var(line, col, lit, len, is_arr, num_sub);
+    }
+
+    void push_bin_op(int line, int col, char const* lit, int len, parse_node_kind k)
+    {
+        m_impl.push_bin_op(line, col, lit, len, k);
+    }
+
+    bool consolidate_bin_ops(size_t start)
+    {
+        return m_impl.consolidate_bin_ops(start);
+    }
+
+    size_t size() const
+    {
+        return m_impl.size();
     }
 
     parse_tree release()
@@ -239,6 +325,10 @@ class parser_impl : noncopyable
     void push_var(bool is_arr, int num_sub)
     {
         m_builder.push_var_node(m_loc.first_line, m_loc.first_column, m_text, m_len, is_arr, num_sub);
+    }
+    void push_bin_op(parse_node_kind k)
+    {
+        m_builder.push_bin_op(m_loc.first_line, m_loc.first_column, m_text, m_len, k);
     }
 
     template <int N>
@@ -313,39 +403,39 @@ class parser_impl : noncopyable
         }
     }
 
-    bool read_constant()
+    bool read_var_ref()
     {
-        bool rv = false;
-        switch (token()) {
-        case LIT_CHAR:
-            rv = true;
-            push_token(LIT_CHAR);
+        check_eos("Expected an expression.");
+        if (token() == IDENT) {
+            push_token(IDENT);
             next_token();
-            break;
-        case LIT_STRING:
-            rv = true;
-            push_token(LIT_STRING);
-            next_token();
-            break;
-        case LIT_INT_HEX:
-            rv = true;
-            push_token(LIT_INT_HEX);
-            next_token();
-            break;
-        case LIT_INT_DEC:
-            rv = true;
-            push_token(LIT_INT_DEC);
-            next_token();
-            break;
-        case LIT_FLOAT:
-            rv = true;
-            push_token(LIT_FLOAT);
-            next_token();
-            break;
-        default:
-            break;
+            if (token() == TOK_SQ_L) {
+                next_token();
+                if (!read_expr()) {
+                    return false;
+                }
+                push_token(EXPR_INDEX, 2);
+                check_char(']');
+                next_token();
+                return true;
+            } else if (token() == TOK_PAREN_L) {
+                next_token();
+                if (!read_arg_list()) {
+                    return false;
+                }
+                check_char(')');
+                next_token();
+                return true;
+            } else if (token() == TOK_TERNARY) {
+                next_token();
+                if (!read_colon_expr()) {
+                    return false;
+                }
+            } else {
+                return true;
+            }
         }
-        return rv;
+        return false;
     }
 
     bool read_unary()
@@ -357,10 +447,12 @@ class parser_impl : noncopyable
             case LIT_INT_HEX:
             case LIT_INT_DEC:
             case LIT_FLOAT:
-            case IDENT:
                 rv = true;
                 push_token((parse_node_kind)token());
                 next_token();
+                break;
+            case IDENT:
+                rv = read_var_ref();
                 break;
             case OP_INCR:
             case OP_DECR:
@@ -436,30 +528,74 @@ class parser_impl : noncopyable
         return rv;
     }
 
+    bool read_arg_list()
+    {
+        check_eos("");
+        int nargs = 0;
+        do {
+            if (read_expr()) {
+                ++nargs;
+                if (token() == TOK_COMMA) {
+                    next_token();
+                    continue;
+                }
+                break;
+            } else {
+                return false;
+            }
+        } while (1);
+        return true;
+    }
+
+    bool read_colon_expr()
+    {
+        check_eos("Trying to read a ternary operator expression.");
+        if (!read_expr()) {
+            return false;
+        }
+        check_char(':');
+        next_token();
+        if (!read_expr()) {
+            return false;
+        }
+        return true;
+    }
+
+
     bool read_expr()
     {
-        check_eos("Expected an expression.");
-        if (token() == IDENT) {
-            push_token(IDENT);
+        bool had_paren = false;
+        if (token() == TOK_PAREN_L) {
+            had_paren = true;
             next_token();
-            if (token() == TOK_SQ_L) {
-                next_token();
-                if (!read_expr()) {
+        }
+        if (read_var_ref() || read_unary()) {
+            auto k = (parse_node_kind)token();
+            if (is_binary_op(k) != -1) {
+                auto start = m_builder.size()-1;
+                do {
+                    push_bin_op(k); // binary op
+                    next_token();
+                    if (!read_unary()) {
+                        return false;
+                    }
+                    k = (parse_node_kind)token();
+                } while (is_binary_op(k) != -1);
+                if (!m_builder.consolidate_bin_ops(start)) {
                     return false;
                 }
-                push_token(EXPR_INDEX, 2);
-                check_char(']');
-                next_token();
-                return true;
-            } else {
-                return true;
             }
+            goto success;
         }
-        if (read_unary()) {
-            return true;
-        }
+
         m_err = "Expected an expression.";
         return false;
+      success:
+        if (had_paren) {
+            check_char(')');
+            next_token();
+        }
+        return true;
     }
 
     bool read_statement()
@@ -472,21 +608,6 @@ class parser_impl : noncopyable
         default:
             return read_expr();
         }
-    }
-
-    // id '=' expr
-    bool read_assign()
-    {
-        if (!read_identifier()) {
-            return false;
-        }
-        check_char('=');
-        next_token();
-        if (!read_expr()) {
-            return false;
-        }
-        push_token("=", TOK_ASSIGN, 2);
-        return true;
     }
 
     bool read_func_def()
@@ -579,7 +700,9 @@ class parser_impl : noncopyable
             m_errfinal.append(std::to_string(m_loc.first_line));
             m_errfinal.append(" col ");
             m_errfinal.append(std::to_string(m_loc.first_column));
-            m_errfinal.append(": ");
+            m_errfinal.append(", near `");
+            m_errfinal.append(m_text);
+            m_errfinal.append("': ");
             m_errfinal.append(m_err);
         }
         return m_errfinal.c_str();

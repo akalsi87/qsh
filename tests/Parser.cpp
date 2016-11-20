@@ -141,266 +141,274 @@ bool test_file(const char* id, const char* str)
   assert(false);        \
   else if (decltype(__VA_ARGS__) x = __VA_ARGS__)
 
-PARSER_TEST_TREE_POS(
-    varDef,
-    "var x = 1;\n")
-{
-    qsh::parser p;
-    auto t = p.parse_string(varDefData::text);
-    TEST_WITH(root, t.root()->sub()[0]) {
-        TEST_TRUE(root->kind == qsh::VAR_DEF);
-        TEST_TRUE(root->num_nodes == 3);
-        TEST_TRUE(root->is_array() == false);
-        TEST_TRUE(!strcmp(root->var_name(), "x"));
-        TEST_WITH(init, root->var_init()) {
-            TEST_TRUE(init->kind == qsh::LIT_INT_DEC);
-            TEST_TRUE(init->num_nodes == 0);
-            TEST_TRUE(!strcmp(init->text, "1"));
-        }
-    }
-}
-
-PARSER_TEST_TREE_POS(
-    singleLineCommentsOnly,
-    "// foo\n"
-    "\n"
-    "     \t\f\v    \n"
-    "// g\n"
-    "//"
-)
-{
-    qsh::parser p;
-    auto t = p.parse_string(singleLineCommentsOnlyData::text);
-    auto root = t.root();
-    TEST_TRUE(root->kind == qsh::TREE_ROOT);
-    TEST_TRUE(root->sub().size() == 0);
-}
-
-PARSER_TEST_TREE_POS(
-    emptyFcnDef,
-    "// foo\n"
-    "def foo(var x, var y) {\n"
-    "}\n"
-)
-{
-    qsh::parser p;
-    auto t = p.parse_string(emptyFcnDefData::text);
-    TEST_WITH(root, t.root()->sub()[0]) {
-        TEST_TRUE(root->kind == qsh::FUNC_DEF);
-        TEST_TRUE(root->num_nodes == 4);
-        TEST_TRUE(root->num_formals() == 2);
-        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
-        TEST_TRUE(root->num_stmts() == 0);
-        TEST_TRUE(root->stmts().size() == 0);
-        TEST_WITH(formal0, root->formals()[0]) {
-            TEST_TRUE(!strcmp(formal0->text, "x"));
-        }
-        TEST_WITH(formal1, root->formals()[1]) {
-            TEST_TRUE(!strcmp(formal1->text, "y"));
-        }
-    }
-}
-
-
-PARSER_TEST_TREE_POS(
-    singleStmtFcnDef,
-    "// foo\n"
-    "def foo(var x, var y) {\n"
-    "  var z = 1;\n"
-    "}\n"
-)
-{
-    qsh::parser p;
-    auto t = p.parse_string(singleStmtFcnDefData::text);
-    TEST_WITH(root, t.root()->sub()[0]) {
-        TEST_TRUE(root->kind == qsh::FUNC_DEF);
-        TEST_TRUE(root->num_nodes == 5);
-        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
-        TEST_TRUE(root->num_formals() == 2);
-        TEST_WITH(formal0, root->formals()[0]) {
-            TEST_TRUE(!strcmp(formal0->text, "x"));
-        }
-        TEST_WITH(formal1, root->formals()[1]) {
-            TEST_TRUE(!strcmp(formal1->text, "y"));
-        }
-        TEST_TRUE(root->num_stmts() == 1);
-        TEST_TRUE(root->stmts().size() == 1);
-        TEST_WITH(varDef, root->stmts()[0]) {
-            TEST_TRUE(varDef->kind == qsh::VAR_DEF);
-            TEST_TRUE(varDef->sub().size() == 3);
-            TEST_TRUE(!strcmp(varDef->var_name(), "z"));
-            TEST_WITH(val, varDef->var_init()) {
-                TEST_TRUE(!strcmp(val->text, "1"));
-                TEST_TRUE(val->kind == qsh::LIT_INT_DEC);
-            }
-        }
-    }
-}
-
-PARSER_TEST_TREE_POS(
-    returnStmtFcnDef,
-    "// foo\n"
-    "def foo(var x, var y) {\n"
-    "  var z = 1;\n"
-    "  return;\n"
-    "  return z;\n"
-    "}\n"
-)
-{
-    qsh::parser p;
-    auto t = p.parse_string(returnStmtFcnDefData::text);
-    TEST_WITH(root, t.root()->sub()[0]) {
-        TEST_TRUE(root->kind == qsh::FUNC_DEF);
-        TEST_TRUE(root->num_nodes == 7);
-        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
-        TEST_TRUE(root->num_formals() == 2);
-        TEST_WITH(formal0, root->formals()[0]) {
-            TEST_TRUE(!strcmp(formal0->text, "x"));
-        }
-        TEST_WITH(formal1, root->formals()[1]) {
-            TEST_TRUE(!strcmp(formal1->text, "y"));
-        }
-        TEST_TRUE(root->num_stmts() == 3);
-        TEST_TRUE(root->stmts().size() == 3);
-        TEST_WITH(varDef, root->stmts()[0]) {
-            TEST_TRUE(varDef->kind == qsh::VAR_DEF);
-            TEST_TRUE(varDef->sub().size() == 3);
-            TEST_TRUE(!strcmp(varDef->var_name(), "z"));
-            TEST_WITH(val, varDef->var_init()) {
-                TEST_TRUE(!strcmp(val->text, "1"));
-                TEST_TRUE(val->kind == qsh::LIT_INT_DEC);
-            }
-        }
-        TEST_WITH(ret0, root->stmts()[1]) {
-            TEST_TRUE(ret0->kind == qsh::KWD_RETURN);
-            TEST_TRUE(ret0->sub().size() == 0);
-        }
-        TEST_WITH(ret1, root->stmts()[2]) {
-            TEST_TRUE(ret1->kind == qsh::KWD_RETURN);
-            TEST_TRUE(ret1->sub().size() == 1);
-            TEST_WITH(expr, ret1->sub()[0]) {
-                TEST_TRUE(expr->kind == qsh::IDENT);
-                TEST_TRUE(!strcmp(expr->text, "z"));
-            }
-        }
-    }
-}
-
-PARSER_TEST_TREE_POS(
-    simpleMain,
-    "// foo comment\n"
-    "/* long\n"
-    " *\n"
-    " * comment*/\n"
-    "\n"
-    "var foo = \"foooooo\"     \"barrrr\"        \"x\";\n"
-    "\n"
-    "///*\n"
-    "def foo(var x, var y) {\n"
-    "\n"
-    "}\n"
-    "\n"
-    "var t= 1;\n"
-)
-{
-    qsh::parser p;
-    auto tree = p.parse_string(simpleMainData::text);
-    TEST_TRUE(tree.root()->sub().size() == 3);
-    TEST_WITH(varDef, tree.root()->sub()[0]) {
-        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
-    }
-    TEST_WITH(funcDef, tree.root()->sub()[1]) {
-        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
-    }
-    TEST_WITH(varT, tree.root()->sub()[2]) {
-        TEST_TRUE(varT->kind == qsh::VAR_DEF);
-    }
-}
-
-PARSER_TEST_NEG(
-    rightEndCommentLine9,
-    "// foo comment\n"
-    "/* long\n"
-    " *\n"
-    " * comment*/\n"
-    "\n"
-    "var foo = \"foooooo\"     \"barrrr\"        \"x\";\n"
-    "\n"
-    "///*\n"
-    "*/\n"
-    "def foo(var x, var y) {\n"
-    "\n"
-    "}\n"
-    "\n"
-    "var t= 1;\n"
-)
-
-PARSER_TEST_NEG(
-    danglingVarIncomplete,
-    "var x"
-)
-
-PARSER_TEST_NEG(
-    varInitArrNonArr,
-    "var x = {1};"
-)
-
-PARSER_TEST_NEG(
-    varInitArrNoCurlyEnd,
-    "var x[] = {1"
-)
+//PARSER_TEST_TREE_POS(
+//    varDef,
+//    "var x = 1;\n")
+//{
+//    qsh::parser p;
+//    auto t = p.parse_string(varDefData::text);
+//    TEST_WITH(root, t.root()->sub()[0]) {
+//        TEST_TRUE(root->kind == qsh::VAR_DEF);
+//        TEST_TRUE(root->num_nodes == 3);
+//        TEST_TRUE(root->is_array() == false);
+//        TEST_TRUE(!strcmp(root->var_name(), "x"));
+//        TEST_WITH(init, root->var_init()) {
+//            TEST_TRUE(init->kind == qsh::LIT_INT_DEC);
+//            TEST_TRUE(init->num_nodes == 0);
+//            TEST_TRUE(!strcmp(init->text, "1"));
+//        }
+//    }
+//}
+//
+//PARSER_TEST_TREE_POS(
+//    singleLineCommentsOnly,
+//    "// foo\n"
+//    "\n"
+//    "     \t\f\v    \n"
+//    "// g\n"
+//    "//"
+//)
+//{
+//    qsh::parser p;
+//    auto t = p.parse_string(singleLineCommentsOnlyData::text);
+//    auto root = t.root();
+//    TEST_TRUE(root->kind == qsh::TREE_ROOT);
+//    TEST_TRUE(root->sub().size() == 0);
+//}
+//
+//PARSER_TEST_TREE_POS(
+//    emptyFcnDef,
+//    "// foo\n"
+//    "def foo(var x, var y) {\n"
+//    "}\n"
+//)
+//{
+//    qsh::parser p;
+//    auto t = p.parse_string(emptyFcnDefData::text);
+//    TEST_WITH(root, t.root()->sub()[0]) {
+//        TEST_TRUE(root->kind == qsh::FUNC_DEF);
+//        TEST_TRUE(root->num_nodes == 4);
+//        TEST_TRUE(root->num_formals() == 2);
+//        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+//        TEST_TRUE(root->num_stmts() == 0);
+//        TEST_TRUE(root->stmts().size() == 0);
+//        TEST_WITH(formal0, root->formals()[0]) {
+//            TEST_TRUE(!strcmp(formal0->text, "x"));
+//        }
+//        TEST_WITH(formal1, root->formals()[1]) {
+//            TEST_TRUE(!strcmp(formal1->text, "y"));
+//        }
+//    }
+//}
+//
+//
+//PARSER_TEST_TREE_POS(
+//    singleStmtFcnDef,
+//    "// foo\n"
+//    "def foo(var x, var y) {\n"
+//    "  var z = 1;\n"
+//    "}\n"
+//)
+//{
+//    qsh::parser p;
+//    auto t = p.parse_string(singleStmtFcnDefData::text);
+//    TEST_WITH(root, t.root()->sub()[0]) {
+//        TEST_TRUE(root->kind == qsh::FUNC_DEF);
+//        TEST_TRUE(root->num_nodes == 5);
+//        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+//        TEST_TRUE(root->num_formals() == 2);
+//        TEST_WITH(formal0, root->formals()[0]) {
+//            TEST_TRUE(!strcmp(formal0->text, "x"));
+//        }
+//        TEST_WITH(formal1, root->formals()[1]) {
+//            TEST_TRUE(!strcmp(formal1->text, "y"));
+//        }
+//        TEST_TRUE(root->num_stmts() == 1);
+//        TEST_TRUE(root->stmts().size() == 1);
+//        TEST_WITH(varDef, root->stmts()[0]) {
+//            TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+//            TEST_TRUE(varDef->sub().size() == 3);
+//            TEST_TRUE(!strcmp(varDef->var_name(), "z"));
+//            TEST_WITH(val, varDef->var_init()) {
+//                TEST_TRUE(!strcmp(val->text, "1"));
+//                TEST_TRUE(val->kind == qsh::LIT_INT_DEC);
+//            }
+//        }
+//    }
+//}
+//
+//PARSER_TEST_TREE_POS(
+//    returnStmtFcnDef,
+//    "// foo\n"
+//    "def foo(var x, var y) {\n"
+//    "  var z = 1;\n"
+//    "  return;\n"
+//    "  return z;\n"
+//    "}\n"
+//)
+//{
+//    qsh::parser p;
+//    auto t = p.parse_string(returnStmtFcnDefData::text);
+//    TEST_WITH(root, t.root()->sub()[0]) {
+//        TEST_TRUE(root->kind == qsh::FUNC_DEF);
+//        TEST_TRUE(root->num_nodes == 7);
+//        TEST_TRUE(!strcmp(root->fcn_name(), "foo"));
+//        TEST_TRUE(root->num_formals() == 2);
+//        TEST_WITH(formal0, root->formals()[0]) {
+//            TEST_TRUE(!strcmp(formal0->text, "x"));
+//        }
+//        TEST_WITH(formal1, root->formals()[1]) {
+//            TEST_TRUE(!strcmp(formal1->text, "y"));
+//        }
+//        TEST_TRUE(root->num_stmts() == 3);
+//        TEST_TRUE(root->stmts().size() == 3);
+//        TEST_WITH(varDef, root->stmts()[0]) {
+//            TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+//            TEST_TRUE(varDef->sub().size() == 3);
+//            TEST_TRUE(!strcmp(varDef->var_name(), "z"));
+//            TEST_WITH(val, varDef->var_init()) {
+//                TEST_TRUE(!strcmp(val->text, "1"));
+//                TEST_TRUE(val->kind == qsh::LIT_INT_DEC);
+//            }
+//        }
+//        TEST_WITH(ret0, root->stmts()[1]) {
+//            TEST_TRUE(ret0->kind == qsh::KWD_RETURN);
+//            TEST_TRUE(ret0->sub().size() == 0);
+//        }
+//        TEST_WITH(ret1, root->stmts()[2]) {
+//            TEST_TRUE(ret1->kind == qsh::KWD_RETURN);
+//            TEST_TRUE(ret1->sub().size() == 1);
+//            TEST_WITH(expr, ret1->sub()[0]) {
+//                TEST_TRUE(expr->kind == qsh::IDENT);
+//                TEST_TRUE(!strcmp(expr->text, "z"));
+//            }
+//        }
+//    }
+//}
+//
+//PARSER_TEST_TREE_POS(
+//    simpleMain,
+//    "// foo comment\n"
+//    "/* long\n"
+//    " *\n"
+//    " * comment*/\n"
+//    "\n"
+//    "var foo = \"foooooo\"     \"barrrr\"        \"x\";\n"
+//    "\n"
+//    "///*\n"
+//    "def foo(var x, var y) {\n"
+//    "\n"
+//    "}\n"
+//    "\n"
+//    "var t= 1;\n"
+//)
+//{
+//    qsh::parser p;
+//    auto tree = p.parse_string(simpleMainData::text);
+//    TEST_TRUE(tree.root()->sub().size() == 3);
+//    TEST_WITH(varDef, tree.root()->sub()[0]) {
+//        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+//    }
+//    TEST_WITH(funcDef, tree.root()->sub()[1]) {
+//        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
+//    }
+//    TEST_WITH(varT, tree.root()->sub()[2]) {
+//        TEST_TRUE(varT->kind == qsh::VAR_DEF);
+//    }
+//}
+//
+//PARSER_TEST_NEG(
+//    rightEndCommentLine9,
+//    "// foo comment\n"
+//    "/* long\n"
+//    " *\n"
+//    " * comment*/\n"
+//    "\n"
+//    "var foo = \"foooooo\"     \"barrrr\"        \"x\";\n"
+//    "\n"
+//    "///*\n"
+//    "*/\n"
+//    "def foo(var x, var y) {\n"
+//    "\n"
+//    "}\n"
+//    "\n"
+//    "var t= 1;\n"
+//)
+//
+//PARSER_TEST_NEG(
+//    danglingVarIncomplete,
+//    "var x"
+//)
+//
+//PARSER_TEST_NEG(
+//    varInitArrNonArr,
+//    "var x = {1};"
+//)
+//
+//PARSER_TEST_NEG(
+//    varInitArrNoCurlyEnd,
+//    "var x[] = {1"
+//)
+//
+//PARSER_TEST_POS(
+//    varInitArr,
+//    "var x[] = {1};"
+//)
+//
+//PARSER_TEST_TREE_POS(
+//    accessGlobalConst,
+//    "var x[] = {1};\n"
+//    "def get(var i) {\n"
+//    "  return x[0];\n"
+//    "}\n"
+//)
+//{
+//    qsh::parser p;
+//    auto tree = p.parse_string(accessGlobalConstData::text);
+//    TEST_TRUE(tree.root()->sub().size() == 2);
+//    TEST_WITH(varDef, tree.root()->sub()[0]) {
+//        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+//    }
+//    TEST_WITH(funcDef, tree.root()->sub()[1]) {
+//        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
+//        TEST_WITH(ret, funcDef->stmts()[0]) {
+//            TEST_WITH(val, ret->sub()[0]) {
+//                TEST_TRUE(val->kind == qsh::EXPR_INDEX);
+//                TEST_TRUE(val->sub()[1]->kind == qsh::LIT_INT_DEC);
+//            }
+//        }
+//    }
+//}
+//
+//PARSER_TEST_TREE_POS(
+//    accessGlobalVar,
+//    "var x[] = {1};\n"
+//    "def get(var i) {\n"
+//    "  return x[i];\n"
+//    "}\n"
+//)
+//{
+//    qsh::parser p;
+//    auto tree = p.parse_string(accessGlobalVarData::text);
+//    TEST_TRUE(tree.root()->sub().size() == 2);
+//    TEST_WITH(varDef, tree.root()->sub()[0]) {
+//        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
+//    }
+//    TEST_WITH(funcDef, tree.root()->sub()[1]) {
+//        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
+//        TEST_WITH(ret, funcDef->stmts()[0]) {
+//            TEST_WITH(val, ret->sub()[0]) {
+//                TEST_TRUE(val->kind == qsh::EXPR_INDEX);
+//                TEST_TRUE(val->sub()[1]->kind == qsh::IDENT);
+//            }
+//        }
+//    }
+//}
 
 PARSER_TEST_POS(
-    varInitArr,
-    "var x[] = {1};"
-)
-
-PARSER_TEST_TREE_POS(
-    accessGlobalConst,
+    testExpr0,
     "var x[] = {1};\n"
     "def get(var i) {\n"
-    "  return x[0];\n"
+    "  return x[i] + foo(7) - 5*7;\n"
     "}\n"
 )
-{
-    qsh::parser p;
-    auto tree = p.parse_string(accessGlobalConstData::text);
-    TEST_TRUE(tree.root()->sub().size() == 2);
-    TEST_WITH(varDef, tree.root()->sub()[0]) {
-        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
-    }
-    TEST_WITH(funcDef, tree.root()->sub()[1]) {
-        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
-        TEST_WITH(ret, funcDef->stmts()[0]) {
-            TEST_WITH(val, ret->sub()[0]) {
-                TEST_TRUE(val->kind == qsh::EXPR_INDEX);
-                TEST_TRUE(val->sub()[1]->kind == qsh::LIT_INT_DEC);
-            }
-        }
-    }
-}
-
-PARSER_TEST_TREE_POS(
-    accessGlobalVar,
-    "var x[] = {1};\n"
-    "def get(var i) {\n"
-    "  return x[i];\n"
-    "}\n"
-)
-{
-    qsh::parser p;
-    auto tree = p.parse_string(accessGlobalVarData::text);
-    TEST_TRUE(tree.root()->sub().size() == 2);
-    TEST_WITH(varDef, tree.root()->sub()[0]) {
-        TEST_TRUE(varDef->kind == qsh::VAR_DEF);
-    }
-    TEST_WITH(funcDef, tree.root()->sub()[1]) {
-        TEST_TRUE(funcDef->kind == qsh::FUNC_DEF);
-        TEST_WITH(ret, funcDef->stmts()[0]) {
-            TEST_WITH(val, ret->sub()[0]) {
-                TEST_TRUE(val->kind == qsh::EXPR_INDEX);
-                TEST_TRUE(val->sub()[1]->kind == qsh::IDENT);
-            }
-        }
-    }
-}
